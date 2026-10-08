@@ -519,11 +519,15 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
       nf.hidden = !f;
       if (f) { nf.dataset.p = f.path; nf.innerHTML = `<span class="g">${LAYERS[f.layer].glyph}</span><b>${esc(f.path)}</b><span class="nd">${esc(f.fm.description || LAYERS[f.layer].label)}</span>`; }
     }
-    const ph = META.phases.find((p) => p.id === S.phase) || (S.phase === 'done' ? META.phases[META.phases.length - 1] : null);
+    const course = [...S.files.values()].some((x) => x.layer === 'cls' || x.layer === 'person');
+    const ph = MODE !== 'replay' ? { level: course ? 'курс' : 'папка', ask: course
+      ? 'Кого из guests/ позвать гостем на класс 05 и почему? Учти кластеры участников и что им откликнется. Ответь ссылками на карточки.'
+      : 'Прочитай AGENTS.md. Что в этой папке уже есть по уровням 1–3 и чего не хватает? Список со ссылками на файлы, ничего не меняй.' }
+      : META.phases.find((p) => p.id === S.phase) || (S.phase === 'done' ? META.phases[META.phases.length - 1] : null);
     const askEl = document.getElementById('ask');
     if (askEl) {
       askEl.innerHTML = ph && ph.ask ? `<p class="ak-q">${esc(ph.ask)}</p>` : '<p class="cap">запрос появится вместе с первой фазой</p>';
-      document.getElementById('askLevel').textContent = ph ? `уровень ${ph.level || 1}` : '';
+      document.getElementById('askLevel').textContent = ph ? (typeof ph.level === 'number' ? `уровень ${ph.level}` : ph.level) : '';
     }
   }
   document.getElementById('narrFile').addEventListener('click', (e) => { const p = e.currentTarget.dataset.p; if (p) openPreview(p); });
@@ -1332,7 +1336,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     $('fbPath').textContent = SESSION.dir.replace(/^\/Users\/[^/]+/, '~');
     $('fbPath').title = SESSION.dir;
     const g = SESSION.git || {};
-    $('fbGit').innerHTML = g.remote ? `git: ${esc(g.branch || 'main')} → <a href="${esc(g.remote)}" target="_blank" rel="noopener">${esc(g.remote.replace(/^https:\/\/github\.com\//, ''))} ↗</a>` : `git: ${esc(g.branch || '–')} · только локально · свой GitHub: <code>gh repo create &lt;имя&gt; --private --source . --push</code>`;
+    $('fbGit').innerHTML = g.remote ? `git: ${esc(g.branch || 'main')} → <a href="${esc(g.remote)}" target="_blank" rel="noopener">${esc(g.remote.replace(/^https:\/\/github\.com\//, ''))} ↗</a>` : [...S.files.values()].some((x) => x.layer === 'person') ? `git: ${esc(g.branch || '–')} · только локально: в папке люди, на GitHub её не кладём` : `git: ${esc(g.branch || '–')} · только локально · свой GitHub: <code>gh repo create &lt;имя&gt; --private --source . --push</code>`;
   }
   $('openFinder').onclick = () => openIn('finder', '');
   let SESSION_T = null;
@@ -1363,7 +1367,10 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
   const hm = (ms) => new Date(ms).toTimeString().slice(0, 5);
   const ago = (ms) => { const s = Math.round((Date.now() - ms) / 1000); return s < 60 ? 'только что' : s < 3600 ? `${Math.round(s / 60)} мин назад` : s < 86400 ? `${Math.round(s / 3600)} ч назад` : new Date(ms).toLocaleDateString('ru'); };
   const runWho = (r) => [LANE_META[r.role] && LANE_META[r.role].title, r.skill].filter(Boolean).join(' · ') || String(r.prompt || '').replace(/\s+/g, ' ').slice(0, 44) || r.id;
-  function setBrand(name) { const h = document.querySelector('.brand h1'); if (h && name) h.textContent = `marketing harness · ${name}`; }
+  function setBrand(name) {
+    const h = document.querySelector('.brand h1'); if (h && name) h.textContent = `SLP harness · ${name}`;
+    const p = document.querySelector('.brand p'); if (p && name) p.textContent = 'Local · папка на этом компьютере, граф собирается из файлов и поля type';
+  }
 
   async function launch(prompt, role) {
     if (!SESSION) return null;
