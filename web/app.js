@@ -3,7 +3,9 @@
  * live:   polls /api/state of tools/harness-server.mjs; console dispatches claude / codex / sotnik
  */
 const SCENARIO_LEVEL = new URLSearchParams(location.search).get('level');
-const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenario-' + SCENARIO_LEVEL + '.json' : 'scenario.json';
+const SCENARIO_KIT = new URLSearchParams(location.search).get('kit') === 'slp' ? 'slp' : '';
+const SCENARIO_BASE = SCENARIO_KIT ? 'local/scenario-slp' : 'scenario';
+const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? '-' + SCENARIO_LEVEL : '') + '.json';
 (() => {
   'use strict';
   const qs = new URLSearchParams(location.search);
@@ -18,15 +20,17 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
   const LOCALHOST = ['localhost', '127.0.0.1'].includes(location.hostname);
   document.body.classList.toggle('live', MODE !== 'replay');
   document.body.classList.toggle('team', TEAM);
+  const keepKit = (u) => { if (SCENARIO_KIT) u.searchParams.set('kit', SCENARIO_KIT); return u; };
+  document.querySelectorAll('.levels a').forEach((a) => { const u = keepKit(new URL(a.getAttribute('href'), location.href)); u.searchParams.delete('mode'); a.href = u.toString(); });
   document.querySelectorAll('.modes button').forEach((b) => {
     b.classList.toggle('on', b.dataset.mode === MODE);
-    b.onclick = () => { if (PUBLIC_COPY && b.dataset.mode === 'team') { location.href = TEAM_URL; return; } const u = new URL(location.href); u.searchParams.set('mode', b.dataset.mode); location.href = u.toString(); };
+    b.onclick = () => { const u = keepKit(new URL(location.href)); u.searchParams.set('mode', b.dataset.mode); if (b.dataset.mode === 'replay') { u.searchParams.delete('mode'); u.searchParams.set('intro', '0'); } location.href = u.toString(); };
     if (PUBLIC_COPY && b.dataset.mode === 'team') b.hidden = true;
   });
 
   // ---------- layers: one shape per abstraction ----------
   const LAYERS = {
-    section:    { label: 'раздел',     sym: 'square',   fill: false,   size: 1300, glyph: '▣' },
+    section:    { label: 'раздел',     sym: 'square',   fill: 'hair',  size: 340,  glyph: '▣' },
     hub:        { label: 'хаб',        sym: 'diamond',  fill: true,    size: 380, glyph: '◆', ax: 0,     ay: -0.08 },
     context:    { label: 'компания',   sym: 'square',   fill: true,    size: 190, glyph: '■', ax: -0.55, ay: -0.62 },
     raw:        { label: 'сырьё',      sym: 'square',   fill: false,   size: 90,  glyph: '▫', ax: -0.86, ay: -0.5 },
@@ -75,7 +79,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
   const CHANNELS = [['linkedin', 'LinkedIn'], ['telegram', 'Telegram'], ['carousel', 'карусель'], ['landing', 'лендинг']];
 
   function layerOf(p) {
-    if (/^(company|sources|meetings|asks|rules|people|audience|competitors|channels|tools|guides|tasks|checks|routines|dashboards|metrics)\/README\.md$/.test(p)) return 'section';
+    if (/^(company|sources|meetings|asks|rules|people|audience|participants|guests|competitors|channels|tools|guides|tasks|checks|routines|dashboards|metrics)\/README\.md$/.test(p)) return 'section';
     if (p === 'README.md' || p === 'CLAUDE.md' || p === 'AGENTS.md') return 'hub';
     if (p === '.mcp.json') return 'tool';
     const top = p.split('/')[0];
@@ -218,7 +222,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     .on('tick', ticked);
   const VERTICAL = new Set(['source', 'research', 'eval', 'dashboard']);
   const SEC_AT = { company: 'context', sources: 'raw', meetings: 'source', asks: 'research', rules: 'rule', people: 'role', audience: 'segment', competitors: 'competitor',
-    channels: 'channel', tools: 'tool', guides: 'guide', tasks: 'output', checks: 'eval', routines: 'automation', dashboards: 'dashboard', metrics: 'eval' };
+    channels: 'channel', tools: 'tool', guides: 'guide', tasks: 'output', checks: 'eval', routines: 'automation', dashboards: 'dashboard', metrics: 'eval', participants: 'person', guests: 'guest' };
   function anchor(d) {
     const L0 = LAYERS[d.layer];
     const L = d.layer === 'section' && d.file ? { ...LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'], ax: (LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'].ax || 0) * 0.82, ay: (LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'].ay || 0) * 0.82 } : L0;
@@ -304,7 +308,6 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
       (enter) => {
         const g = enter.append('g').attr('class', 'node');
         g.append('path');
-        g.append('image').attr('preserveAspectRatio', 'xMidYMid slice');
         g.append('text').attr('text-anchor', 'middle');
         g.call(d3.drag().on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.2).restart(); d.fx = d.x; d.fy = d.y; })
           .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
@@ -322,9 +325,6 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     nodeSel.select('path').attr('d', (d) => d3.symbol(SYM[LAYERS[d.layer].sym], LAYERS[d.layer].size)())
       .attr('fill', (d) => { const f = LAYERS[d.layer].fill; return f === true ? '#0a0a0a' : f === 'accent' ? (d.running ? '#d7261e' : '#0a0a0a') : f === 'hair' ? '#e6e6e6' : '#fff'; })
       .attr('stroke', (d) => (d.layer === 'agent' ? (d.running ? '#d7261e' : '#0a0a0a') : null));
-    nodeSel.select('image').attr('display', (d) => (d.layer === 'section' ? null : 'none'))
-      .attr('href', (d) => (d.layer === 'section' && d.file ? `assets/metaphors/${d.file.path.split('/')[0]}-sq.webp` : null))
-      .attr('x', -17).attr('y', -17).attr('width', 34).attr('height', 34);
     nodeSel.select('text').text((d) => (d.title.length > 24 ? d.title.slice(0, 22).trimEnd() + '…' : d.title)).attr('dy', (d) => Math.sqrt(LAYERS[d.layer].size) / 1.5 + 11);
     nodeSel.selectAll('circle.pulse').remove();
     nodeSel.filter((d) => d.running).insert('circle', 'path').attr('class', 'pulse').attr('r', 14);
@@ -531,10 +531,10 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     document.querySelector('#bar i').style.width = `${Math.min(100, progress * 100)}%`;
   }
   let SECTIONS = {};
-  fetch('sections.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : {})).then((j) => { SECTIONS = j; markDirty(); }).catch(() => {});
+  fetch(SCENARIO_KIT ? 'local/sections-slp.json' : 'sections.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : {})).then((j) => { SECTIONS = j; markDirty(); }).catch(() => {});
   const RQ = ['просто', 'средне', 'сложно'];
   function sectionCard(id, s) {
-    return `<div class="sc"><img src="assets/metaphors/${id}.webp" alt=""><div class="sc-h"><b>${esc(s.title)}</b><span>${esc(s.metaphor)}</span></div></div>
+    return `<div class="sc"><img src="assets/metaphors/${s.img || id}.webp" alt=""><div class="sc-h"><b>${esc(s.title)}</b>${s.metaphor ? `<span>${esc(s.metaphor)}</span>` : ""}</div></div>
       <p class="sc-w">${esc(s.what)}</p><ol class="rq">${s.requests.map((r, i) => `<li style="animation-delay:${0.25 + i * 0.9}s"><i>${i + 1} · ${RQ[i]}</i><span>${esc(r)}</span></li>`).join('')}</ol>`;
   }
   function renderNarr() {
@@ -718,7 +718,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
         // tools in dashboards/ may pull the map library, fonts and map tiles – only from these hosts
         const tool = PV.path.startsWith('dashboards/');
         const csp = tool
-          ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; script-src 'unsafe-inline' https://unpkg.com; img-src data: blob: https://tile.openstreetmap.org https://unpkg.com; font-src data: https://fonts.gstatic.com; connect-src 'none'; form-action 'none'; base-uri 'none'">`
+          ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; script-src 'unsafe-inline'; img-src data: blob: https://tile.openstreetmap.org; font-src data: https://fonts.gstatic.com; connect-src 'none'; form-action 'none'; base-uri 'none'">`
           : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">`;
         const css = [...S.files.values()].filter(x => x.path.endsWith('.css')).map(x => x.content).join('\n');
         const doc = csp + '<style>' + css.replace(/</g, '\\3c ') + '</style>' + content;
@@ -1008,6 +1008,11 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     try { toolsLive = (await fetch('/api/tools').then((r) => r.json())).tools; renderTools(); } catch { /* offline */ }
   }
   async function startLive() {
+    document.getElementById('phases').addEventListener('click', (e) => {
+      const el = e.target.closest('.ph'); if (!el) return;
+      const ph = META.phases[Number(el.dataset.i)]; if (!ph) return;
+      const u = keepKit(new URL(location.href)); u.searchParams.delete('mode'); u.searchParams.set('phase', ph.id); u.searchParams.set('intro', '0'); location.href = u.toString();
+    });
     try {
       const sc = await fetch(SCENARIO_FILE, { cache: 'no-store' }).then((r) => r.json());
       META = { questions: sc.questions, answers: {}, phases: sc.phases, duration: sc.duration };
@@ -1336,7 +1341,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     $('secGrid').innerHTML = [1, 2, 3].map((lv) => `<h4>уровень ${lv} · ${['база', 'правила и карточки', 'агенты'][lv - 1]}</h4><div class="sg-row">` + order.filter(([, s]) => s.level === lv).map(([id, s]) => {
       const here = S.files.has(`${id}/README.md`), fut = FUTURE.get(`${id}/README.md`);
       const state = here ? 'есть в папке' : fut ? `появится в фазе ${String(fut.phase || '').slice(1)}` : MODE === 'replay' ? '' : 'нет в этой папке';
-      return `<button type="button" class="sgc${here ? '' : ' later'}" data-s="${id}"><img src="assets/metaphors/${id}.webp" alt="" loading="lazy"><b>${esc(s.title)}</b><small>${esc(s.what)}</small><ol>${s.requests.map((r, i) => `<li><i>${i + 1}</i>${esc(r)}</li>`).join('')}</ol><em>${esc(state)}</em></button>`;
+      return `<button type="button" class="sgc${here ? '' : ' later'}" data-s="${id}"><img src="assets/metaphors/${s.img || id}.webp" alt="" loading="lazy"><b>${esc(s.title)}</b><small>${esc(s.what)}</small><ol>${s.requests.map((r, i) => `<li><i>${i + 1}</i>${esc(r)}</li>`).join('')}</ol><em>${esc(state)}</em></button>`;
     }).join('') + '</div>').join('');
     $('secs').hidden = false;
   }
@@ -1440,7 +1445,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
   const runWho = (r) => [LANE_META[r.role] && LANE_META[r.role].title, r.skill].filter(Boolean).join(' · ') || String(r.prompt || '').replace(/\s+/g, ' ').slice(0, 44) || r.id;
   function setBrand(name) {
     const h = document.querySelector('.brand h1'); if (h && name) h.textContent = `SLP harness · ${name}`;
-    const p = document.querySelector('.brand p'); if (p && name) p.textContent = 'Local · папка на этом компьютере, граф собирается из файлов и поля type';
+    const p = document.querySelector('.brand p'); if (p && name) p.textContent = 'папка на этом компьютере · фазы внизу – как она росла';
   }
 
   async function launch(prompt, role) {

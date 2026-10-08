@@ -606,7 +606,11 @@ http.createServer(async (req, res) => {
     res.writeHead(404); return res.end('not found');
   }
   if (!(fs.realpathSync(file).startsWith(fs.realpathSync(base) + path.sep))) { res.writeHead(404); return res.end('not found'); }
-  if (isFolder && path.extname(file) === '.html') res.setHeader('Content-Security-Policy', "sandbox allow-scripts; default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'");
+  // tools in dashboards/ may draw map tiles and load fonts; everything else stays closed
+  const tool = isFolder && /(^|\/)dashboards\//.test(file.replace(/\\/g, '/'));
+  if (isFolder && path.extname(file) === '.html') res.setHeader('Content-Security-Policy', tool
+    ? "sandbox allow-scripts; default-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; font-src 'self' data: https://fonts.gstatic.com; connect-src 'none'; form-action 'none'; base-uri 'none'"
+    : "sandbox allow-scripts; default-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'");
   const type = TYPES[path.extname(file)] || 'text/plain; charset=utf-8';
   res.writeHead(200, { 'content-type': type, 'cache-control': 'no-store' });
   if (isFolder && /^(text\/|application\/json)/.test(type)) return res.end(redact(fs.readFileSync(file, 'utf8')));

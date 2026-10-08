@@ -10,7 +10,7 @@ DIR="$(cd "$1" && pwd)"
 command -v node >/dev/null || { echo "нужен node ≥ 18: brew install node"; exit 1; }
 . "$ROOT/bin/_port.sh"
 read -r MODE PORT < <(harness_port "$DIR")
-URL="http://localhost:$PORT/?mode=live&intro=0"
+URL="http://localhost:$PORT/?mode=live&intro=0${HARNESS_KIT:+&kit=$HARNESS_KIT}"
 if [[ "$MODE" == reuse ]]; then
   echo "уже запущен для этой папки: $URL"
   [[ "${NO_OPEN:-0}" == 1 ]] || open "$URL" 2>/dev/null || true

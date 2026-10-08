@@ -18,12 +18,13 @@
 <header id="hd">
   <img class="logo" src="assets/slp-mark-black.png" alt="SLP">
   <div class="brand">
-    <h1>папка компании</h1>
-    <p>SLP harness · банный комплекс в Москве</p>
+    <h1>SLP harness</h1>
+    <p id="brandSub">папка компании растёт по фазам · уровни 1–3</p>
   </div>
   <div class="navs">
-    <button id="searchBtn" class="search" title="поиск по файлам и фазам · ⌘K">⌕ поиск <kbd>⌘K</kbd></button>
-    <nav class="levels" aria-label="уровень"><a href="?level=1" data-l="1">1 · база</a><a href="?level=2" data-l="2">2 · правила и карточки</a><a href="./" data-l="3">3 · агенты</a></nav>
+    <nav class="modes" aria-label="режим"><button type="button" data-mode="replay">сборка</button><button type="button" data-mode="live">папка</button></nav>
+    <button id="searchBtn" class="search" title="поиск по файлам и фазам · ⌘K">⌕ <kbd>⌘K</kbd></button>
+    <nav class="levels" aria-label="уровень"><a href="?level=1" data-l="1" title="уровень 1 · база">1 база</a><a href="?level=2" data-l="2" title="уровень 2 · правила и карточки">2 правила</a><a href="./" data-l="3" title="уровень 3 · агенты">3 агенты</a></nav>
     <button type="button" id="secsBtn" class="pagelink">разделы</button><button type="button" id="setupBtn" class="pagelink go">свой бизнес</button><a class="pagelink" href="https://github.com/ai-mindset-org/slp-harness" target="_blank" rel="noopener">GitHub ↗</a>
   </div>
   <div class="clock"><b id="phaseLabel">00 · пустая папка</b><span id="clock">00:00</span></div>
@@ -147,8 +148,8 @@
 <div id="intro" hidden role="dialog" aria-modal="true" aria-labelledby="inTitle">
   <div class="card">
     <div class="st-hd"><span>SLP'26 · AI for Business · 14 октября</span><span>fig. 0</span></div>
-    <h3 id="inTitle">папка компании: банный комплекс в Москве</h3>
-    <p>вымышленный банный комплекс на 18 человек: будни пустые, отзывы без ответа, договорённости в WhatsApp администратора. за десять шагов пустая папка становится системой. <b>уровень 1</b> – база: паспорт, имена, встречи. <b>уровень 2</b> – правила, роли, гости, реальные конкуренты Москвы через Exa, каналы из класса про маркетинг. <b>уровень 3</b> – агенты ставят задачи и сами смотрят конкурентов. остановиться можно после любого уровня.</p>
+    <h3 id="inTitle">как папка компании растёт</h3>
+    <p>банный комплекс на 18 человек: будни пустые, отзывы без ответа, договорённости в WhatsApp. за одиннадцать фаз пустая папка становится системой. <b>1</b> – паспорт, имена, встречи. <b>2</b> – правила, роли, гости, конкуренты, каналы. <b>3</b> – агенты ставят задачи и следят за рынком. остановиться можно после любого уровня.</p>
     <ul id="inPoints">
       <li>каждая фигура на графе – файл; линии – ссылки между файлами; оранжевое – то, что появилось только что</li><li>справа – запрос агенту на этой фазе: так формулируют задачу папке</li>
       <li>после каждой фазы – карточка с объяснением и кнопка «продолжить»; клик по фазе внизу возвращает к её карточке</li>
@@ -207,6 +208,7 @@
 <script src="app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="setup.js"></script>
+<script>(function(){var q=new URLSearchParams(location.search);if(q.get("kit")==="slp"){var b=document.getElementById("brandSub");if(b)b.textContent="SLP'26 · папка сообщества растёт по фазам · только на этом компьютере";}})();</script>
 <script>(function(){var l=new URLSearchParams(location.search).get("level")||"3";document.querySelectorAll(".levels a").forEach(function(a){if(a.dataset.l===l)a.classList.add("on")});})();</script>
 </body>
 </html>

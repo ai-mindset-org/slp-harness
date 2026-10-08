@@ -39,7 +39,8 @@ const answersOverride = {
   ...(opt('answers') ? JSON.parse(fs.readFileSync(opt('answers'), 'utf8')) : {}),
 };
 
-const tl = buildTimeline(path.join(root, 'kit'), answersOverride);
+const KIT_DIR = opt('kit') ? path.resolve(opt('kit').replace(/^~/, process.env.HOME)) : path.join(root, 'kit');
+const tl = buildTimeline(KIT_DIR, answersOverride);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const G = '\x1b[90m', R = '\x1b[31m', B = '\x1b[1m', X = '\x1b[0m';
 
@@ -53,7 +54,7 @@ const state = {
 // files keep the mode of their kit source: the pre-commit hook and the gate scripts stay executable
 const w = (rel, text) => {
   const f = path.join(dir, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, text);
-  try { const m = fs.statSync(path.join(root, 'kit', 'files', rel)).mode & 0o777; if (m & 0o111) fs.chmodSync(f, m); } catch { /* not from the kit */ }
+  try { const m = fs.statSync(path.join(KIT_DIR, 'files', rel)).mode & 0o777; if (m & 0o111) fs.chmodSync(f, m); } catch { /* not from the kit */ }
 };
 const save = () => w('.harness/state.json', JSON.stringify(state, null, 1));
 const say = (text) => { state.narration.push({ t: Date.now(), text }); state.narration = state.narration.slice(-14); save(); console.log(`${G}${state.phase || '··'}${X} ${text}`); };
