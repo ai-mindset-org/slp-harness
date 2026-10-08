@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Папка компании · SLP harness</title>
+<meta name="description" content="Как пустая папка становится системой банного комплекса в Москве: база, правила и карточки, агенты. Пример для класса AI for Business, SLP'26.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Папка компании · SLP harness">
+<meta property="og:description" content="Как пустая папка становится системой банного комплекса в Москве: база, правила и карточки, агенты. Пример для класса AI for Business, SLP'26.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/slp-mark-black.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header id="hd">
+  <img class="logo" src="assets/slp-mark-black.png" alt="SLP">
+  <div class="brand">
+    <h1>папка компании · SLP harness</h1>
+    <p>банный комплекс в Москве · уровень 1 база → 2 правила и карточки → 3 агенты</p>
+  </div>
+  <div class="navs">
+    <button id="searchBtn" class="search" title="поиск по файлам и фазам · ⌘K">⌕ поиск <kbd>⌘K</kbd></button>
+    <nav class="levels" aria-label="уровень"><a href="?level=1" data-l="1">1 · база</a><a href="?level=2" data-l="2">2 · правила и карточки</a><a href="./" data-l="3">3 · агенты</a></nav>
+    <a class="pagelink" href="https://github.com/ai-mindset-org/slp-harness" target="_blank" rel="noopener">GitHub ↗</a><a class="pagelink" href="https://slp-ai-business.lab.aimindset.org/programma.html" target="_blank" rel="noopener">программа ↗</a>
+  </div>
+  <div class="clock"><b id="phaseLabel">00 · пустая папка</b><span id="clock">00:00</span></div>
+</header>
+
+<main id="grid">
+  <section id="colL" class="panel">
+    <h2 class="fold-h" data-fold="tree"><span>01 · папка</span><em id="fileCount">0</em></h2>
+    <div id="folderBar" class="liveonly"><div class="fb-path" id="fbPath">–</div><div class="fb-git" id="fbGit">git: –</div><div class="fb-act"><button id="openVault" class="srvonly" title="открыть всю папку в Obsidian">Obsidian ↗</button><button id="openFinder" class="srvonly" title="показать папку в Finder">Finder ↗</button><button id="newFileBtn" class="editonly" title="создать файл в папке">+ файл</button><button id="forkBtn" class="srvonly" title="копия папки с историей: пробовать без риска">форк</button><button id="pickAgain" class="fsaonly" title="выбрать другую папку">другая папка</button></div><form id="newFile" hidden><input id="nfPath" placeholder="rules/{rule} моё правило.md" autocomplete="off"><button type="submit">создать</button></form><div id="forkBox" hidden></div></div>
+    <div id="tree" class="scroll"></div>
+    <h2 class="sub fold-h" data-fold="commits"><span>02 · коммиты</span><em id="commitCount">0</em></h2>
+    <ol id="commits"></ol>
+  </section>
+
+  <section id="colC" class="panel">
+    <div class="gh">
+      <h2><span>03 · граф харнесса</span></h2>
+      <div id="legend"></div>
+    </div>
+    <div id="stage">
+      <svg id="graph" role="img" aria-label="граф файлов харнесса"></svg>
+      <div id="empty">пустая папка<br><small>git init · 0 файлов</small></div>
+      <div id="liveHint" hidden></div>
+      <div id="connect" hidden>
+        <div class="cn-hd"><span>Local · подключить папку</span><span class="cap" id="cnWhy">локальное хранение: папка на твоём компьютере, на сайте её нет</span></div>
+        <div class="cn-opt">
+          <b>01 · папка в браузере</b>
+          <p>выбери папку харнесса на компьютере или перетащи её сюда из Finder. граф строится из файлов, правки сохраняются прямо в них. без установки; агенты, сессии, откат и коммиты – в полном режиме. на телефоне папку не выбрать: подключай с компьютера.</p>
+          <div class="cn-row"><button id="pickFolder" class="go" type="button">выбрать папку</button><button id="resumeFolder" type="button" hidden>продолжить с прошлой папкой</button><span class="cap" id="fsaNote">Chrome, Arc, Edge</span></div>
+        </div>
+        <div class="cn-opt">
+          <b>02 · полный режим: агенты, сессии, откат, форк, Obsidian</b>
+          <p>в терминале: скачать движок в новую папку (нужны git и Node.js 18+):</p>
+          <div class="cmd"><code id="cmdClone">git clone https://github.com/ai-mindset-org/slp-harness.git ~/slp-harness</code><button type="button" data-copy="cmdClone">копировать</button></div>
+          <p>создать свою папку из кита банного комплекса и открыть граф. Существующую папку new.sh не перезаписывает:</p>
+          <div class="cmd"><code id="cmdOpen">~/slp-harness/bin/new.sh ~/harness/my-company</code><button type="button" data-copy="cmdOpen">копировать</button></div>
+          <div class="cn-row"><a class="btnlink" href="http://localhost:4747/?mode=live&amp;intro=0" target="_blank" rel="noopener">открыть localhost:4747 ↗</a><span class="cap">если граф уже запущен; при занятом 4747 open.sh берёт следующий порт и пишет адрес в терминале</span></div>
+          <p class="cap">свой харнесс с нуля: <code>~/slp-harness/bin/new.sh ~/harness/my-company</code> · копия с историей: <code>~/harness-engine/bin/fork.sh ~/harness/my-product ~/harness/my-try</code> · остановить: <code>~/harness-engine/bin/stop.sh [порт]</code> · нет gh: <code>brew install gh &amp;&amp; gh auth login</code></p>
+        </div>
+        <div class="cn-opt">
+          <b>03 · папка курса SLP</b>
+          <p>второй слой: классы, треки, гости и кластеры участников по бэкграунду. Папка живёт только на компьютере, в git и на сайт не попадает. Выбери её кнопкой «выбрать папку» – граф соберётся по полю <code>type</code> в карточках.</p>
+        </div>
+      </div>
+    </div>
+    <div id="narr"><span id="narrTag">сейчас</span><span id="narrText">–</span><button type="button" id="narrFile" hidden title="открыть файл"></button></div>
+  </section>
+
+  <section id="colR">
+    <div class="panel" id="anketaP"><h2 class="fold-h" data-fold="qa"><span>04 · анкета</span><em id="qaCount">0/7</em></h2><dl id="qa"></dl></div>
+    <div class="panel" id="askP"><h2 class="fold-h" data-fold="ask"><span>05 · запрос агенту</span><em id="askLevel"></em></h2><div id="ask"></div></div>
+    <div class="panel" id="lanesP"><h2 class="fold-h" data-fold="lanes"><span>06 · агенты</span><em id="laneCount">0</em></h2><div id="lanes"></div></div>
+    <div class="panel" id="dashP">
+      <div id="tabs"><button class="on" data-tab="dash">07 · срез</button><button data-tab="tools">инструменты</button><button data-tab="console" class="liveonly">консоль</button><button data-tab="sessions">сессии</button><button class="fold-t" data-fold="tabBody" title="свернуть блок">▾</button></div>
+      <div id="tabBody">
+        <div class="tabpane" data-tab="dash"><div id="metrics"></div><div id="coverage"></div></div>
+        <div class="tabpane" data-tab="tools" hidden><div id="tools"></div></div>
+        <div class="tabpane" data-tab="sessions" hidden><div id="sessions"></div></div>
+        <div class="tabpane" data-tab="console" hidden>
+          <div id="consoleOff" hidden></div>
+          <form id="consoleForm">
+            <div class="crow"><select id="cRunner"><option value="claude">claude · локально</option><option value="codex">codex · локально</option><option value="sotnik">сотник · codex на сервере</option></select><select id="cModel" title="модель"></select></div>
+            <textarea id="cPrompt" rows="3" placeholder="задача агенту внутри этой папки"></textarea>
+            <div id="cPresets">
+              <button type="button" data-p="Прочитай AGENTS.md. По скиллу harness-evolve добавь скилл для email-рассылки: шаги, вход и выход, ссылки. Потом node bin/sync-skills.mjs и node bin/check.mjs --golden.">+ скилл</button>
+              <button type="button" data-p="Прочитай AGENTS.md. По скиллу content-factory сделай пачку из двух черновиков LinkedIn из нуклеусов без черновика, потом node bin/check.mjs и node bin/render.mjs all.">пачка</button>
+              <button type="button" data-p="Прочитай AGENTS.md и context/{context} product.md. По скиллу research-exa возьми один открытый вопрос из research/ или из паспорта продукта и сделай скан в research/ с сегодняшней датой: таблица утверждение · ссылка · дата · уровень A/B/C и блок «что это значит для нас». Если Exa MCP недоступен, ничего не пиши и объясни, что настроить.">ресёрч</button>
+              <button type="button" data-p="Прочитай AGENTS.md. По скиллу slop-check оцени черновики в outputs/ и обнови scorecard с сегодняшней датой. Предложения к правилам и golden set пиши в раздел «предложения» scorecard, сами rules/ и golden set не меняй.">критик</button>
+              <button type="button" data-p="Прочитай AGENTS.md и skills/{skill} harness-principles.md. По этому скиллу проведи аудит папки и запиши отчёт в evals/ с сегодняшней датой: таблица принцип · да/нет/не проверено · где · что поправить, в конце три главные правки. Другие файлы не меняй.">аудит</button>
+            </div>
+            <div class="crow"><button type="submit">запустить</button><span id="cStatus" class="cap">запуск отправляет задачу выбранному AI-провайдеру; используются ваши доступы · сервер сотника: <b id="consoleHost">–</b></span></div>
+            <div id="cMsg" class="cap"></div>
+          </form>
+          <div id="runs"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="tl">
+  <div class="ctrl" id="ctrl">
+    <button id="prev" title="предыдущая фаза · ←">⏮</button>
+    <button id="play" title="пауза · пробел">❚❚</button>
+    <button id="next" title="следующая фаза · →">⏭</button>
+    <button id="speed" title="скорость">1×</button>
+    <button id="end" title="в конец · End">⇥</button>
+    <button id="restart" title="сначала · r">↺</button>
+    <button id="stopsBtn" title="остановки с пояснением после каждой фазы · s">стопы</button>
+  </div>
+  <div id="phases"></div>
+  <div id="bar"><i></i></div>
+</footer>
+
+<aside id="preview" hidden>
+  <header><div><b id="pvTitle"></b><span id="pvPath"></span></div><button id="pvClose" aria-label="закрыть">×</button></header>
+  <div id="pvBar">
+    <button id="pvFull" title="во весь экран · f">⤢</button><button id="pvView" class="on fileonly" title="как читается">вид</button><button id="pvRaw" class="fileonly" title="исходный текст">исходник</button><button id="pvEdit" class="liveonly editonly fileonly" title="править файл с живым превью">править</button><button id="pvHist" class="liveonly srvonly fileonly" title="версии файла: посмотреть, сравнить, вернуть">история</button>
+    <span class="sp"></span>
+    <button id="pvSave" class="liveonly editonly" hidden title="сохранить и закоммитить · ⌘S">сохранить</button>
+    <span class="pvbr fileonly"></span><span class="pvlab fileonly">открыть</span><button id="pvObs" class="liveonly srvonly fileonly" title="открыть файл в Obsidian">Obsidian</button><button id="pvFinder" class="liveonly srvonly fileonly" title="показать в Finder">Finder</button><button id="pvApp" class="liveonly srvonly fileonly" title="открыть в приложении по умолчанию">приложение</button><a id="pvGh" class="pvlink fileonly" target="_blank" rel="noopener" title="файл в репозитории GitHub · нужен доступ к ai-mindset-org">GitHub ↗</a><button id="pvDl" class="fileonly" title="скачать файл и открыть у себя">скачать</button>
+  </div>
+  <div id="pvLinks"></div>
+  <div id="pvWrap">
+    <textarea id="pvEditor" hidden spellcheck="false"></textarea>
+    <pre id="pvBody"></pre>
+    <div id="pvMd" class="md" hidden></div>
+    <iframe sandbox="allow-scripts" referrerpolicy="no-referrer" id="pvFrame" hidden title="рендер"></iframe>
+  </div>
+  <div id="pvNote" class="cap"></div>
+</aside>
+
+<div id="search" hidden role="dialog" aria-label="поиск">
+  <div class="box">
+    <input id="q" autocomplete="off" spellcheck="false" placeholder="файл, правило, конкурент, канал, фаза…">
+    <ol id="qres"></ol>
+    <div class="cap">↑↓ выбрать · Enter открыть · Esc закрыть</div>
+  </div>
+</div>
+
+<div id="intro" hidden role="dialog" aria-modal="true" aria-labelledby="inTitle">
+  <div class="card">
+    <div class="st-hd"><span>SLP'26 · AI for Business · 14 октября</span><span>fig. 0</span></div>
+    <h3 id="inTitle">папка компании: банный комплекс в Москве</h3>
+    <p>вымышленный банный комплекс на 18 человек: будни пустые, отзывы без ответа, договорённости в WhatsApp администратора. за десять шагов пустая папка становится системой. <b>уровень 1</b> – база: паспорт, имена, встречи. <b>уровень 2</b> – правила, роли, гости, реальные конкуренты Москвы через Exa, каналы из класса про маркетинг. <b>уровень 3</b> – агенты ставят задачи и сами смотрят конкурентов. остановиться можно после любого уровня.</p>
+    <div class="resource-links"><a href="https://slp-ai-business.lab.aimindset.org/programma.html" target="_blank" rel="noopener">программа класса ↗</a><a href="https://slp-ai-business.lab.aimindset.org/anketa.html" target="_blank" rel="noopener">анкета группы ↗</a></div><ul id="inPoints">
+      <li>каждая фигура на графе – файл; линии – ссылки между файлами; оранжевое – то, что появилось только что</li><li>справа – запрос агенту на этой фазе: так формулируют задачу папке</li>
+      <li>после каждой фазы – карточка с объяснением и кнопка «продолжить»; клик по фазе внизу возвращает к её карточке</li>
+      <li>клик по узлу открывает файл, у файла есть ссылка на GitHub; <kbd>⌘K</kbd> – поиск; пробел – пауза; ← → – фазы</li>
+          </ul>
+    <div class="st-ft"><button id="inEnd" type="button">сразу финал</button><span class="sp"></span><button id="inGo" type="button" class="go">смотреть сборку →</button></div>
+  </div>
+</div>
+
+<div id="stop" hidden role="dialog" aria-modal="true" aria-labelledby="stTitle">
+  <div class="card">
+    <div class="st-hd"><span id="stNum">фаза 00</span><span id="stStep">1 / 10</span></div>
+    <div class="st-cols">
+      <div class="st-main">
+        <h3 id="stTitle"></h3>
+        <p id="stLead"></p>
+        <ul id="stPoints"></ul>
+        <div id="stAsk" hidden></div>
+        <div id="stHalt" hidden></div>
+        <div id="stFiles"></div>
+      </div>
+      <div id="stTree"></div>
+    </div>
+    <div class="st-ft">
+      <button id="stOff" type="button" title="смотреть без остановок">без остановок</button>
+      <span class="sp"></span>
+      <button id="stGo" type="button" class="go">продолжить →</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/d3.min.js"></script>
+<script src="app.js"></script>
+<script>(function(){var l=new URLSearchParams(location.search).get("level")||"3";document.querySelectorAll(".levels a").forEach(function(a){if(a.dataset.l===l)a.classList.add("on")});})();</script>
+</body>
+</html>
