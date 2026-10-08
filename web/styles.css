@@ -656,3 +656,73 @@ body.live .levels{display:none}
 #narrFile .g{grid-row:1 / 3}
 #narrFile .nd{grid-column:2; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
 #narrText{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+
+/* разделы: узел-картинка, карточка справа, галерея, свой бизнес */
+.node image{outline:1px solid var(--ink)}
+.pagelink.go{background:var(--accent); border-color:var(--accent); color:#fff}
+.pagelink.go:hover{background:var(--ink); border-color:var(--ink)}
+button.pagelink{cursor:pointer; font-family:var(--mono)}
+#askP{flex:0 1 auto; min-height:0; overflow:auto}
+.sc{position:relative; border:1px solid var(--ink); animation:rise .4s var(--ease)}
+.sc img{display:block; width:100%; aspect-ratio:3/2; object-fit:cover}
+.sc-h{position:absolute; left:0; right:0; bottom:0; padding:22px 12px 9px; background:linear-gradient(transparent, rgba(0,0,0,.78)); color:#fff; display:flex; flex-direction:column}
+.sc-h b{font-family:Inter,system-ui,sans-serif; font-size:24px; font-weight:800; letter-spacing:-.01em; line-height:1}
+.sc-h span{font-size:11.5px; opacity:.8; margin-top:3px}
+.sc-w{font-family:Inter,system-ui,sans-serif; font-size:14px; line-height:1.4; margin:8px 0 6px}
+.rq{list-style:none; margin:0; padding:0; display:grid; gap:5px}
+.rq li{display:grid; grid-template-columns:76px minmax(0,1fr); gap:8px; padding:6px 8px; background:var(--paper); border-left:3px solid var(--ink); font-family:Inter,system-ui,sans-serif; font-size:13.5px; line-height:1.35; opacity:0; animation:rqin .45s var(--ease) forwards}
+.rq li:nth-child(2){border-left-color:#777}
+.rq li:nth-child(3){border-left-color:var(--accent)}
+.rq li i{font-style:normal; font-family:var(--mono); font-size:11px; color:var(--muted); padding-top:2px}
+@keyframes rqin{from{opacity:0; transform:translateX(-8px)} to{opacity:1; transform:none}}
+#secs,#setup{position:fixed; inset:0; z-index:12; background:rgba(10,10,10,.42); display:grid; place-items:center; padding:20px}
+#secs>.box,#setup>.box{width:min(1240px,100%); max-height:calc(100vh - 40px); overflow:auto; background:var(--bg); border:1px solid var(--ink); padding:14px 16px; animation:rise .3s var(--ease)}
+#secs .st-hd button,#setup .st-hd button{border:none; font-size:20px; padding:0 6px}
+#secGrid h4{font-family:var(--mono); font-weight:500; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:14px 0 8px}
+.sg-row{display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:10px}
+.sgc{display:flex; flex-direction:column; text-align:left; padding:0; border:1px solid var(--ink); background:var(--bg); cursor:pointer; font-family:Inter,system-ui,sans-serif}
+.sgc:hover{background:var(--bg); color:var(--ink); outline:2px solid var(--accent)}
+.sgc img{width:100%; aspect-ratio:3/2; object-fit:cover; display:block; transition:filter .2s}
+.sgc.later img{filter:grayscale(1) brightness(.55)}
+.sgc b{font-size:20px; font-weight:800; padding:8px 10px 0}
+.sgc small{font-size:12.5px; color:#444; padding:2px 10px 6px; line-height:1.35}
+.sgc ol{list-style:none; margin:0; padding:0 10px 8px; display:grid; gap:3px}
+.sgc ol li{font-size:12.5px; line-height:1.35; display:grid; grid-template-columns:16px 1fr}
+.sgc ol li i{font-style:normal; font-family:var(--mono); color:var(--accent)}
+.sgc em{font-style:normal; font-family:var(--mono); font-size:11px; color:var(--muted); padding:6px 10px; border-top:1px dashed var(--soft); margin-top:auto}
+.su{display:grid; grid-template-columns:minmax(0,420px) minmax(0,1fr); gap:18px}
+.su h3{font-family:Inter,system-ui,sans-serif; font-size:26px; font-weight:800; margin:6px 0 10px}
+.su .chips{display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px}
+.su .chip{padding:5px 10px; font-size:12.5px}
+#suForm label{display:grid; gap:3px; margin-bottom:8px}
+#suForm span{font-size:11.5px; color:var(--muted); letter-spacing:.04em}
+#suForm input{border:1px solid var(--ink); padding:7px 9px; font-family:Inter,system-ui,sans-serif; font-size:14px; background:var(--bg); color:var(--ink)}
+#suForm input:focus{outline:2px solid var(--accent); outline-offset:-1px}
+.su-act{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+.su-act .go{background:var(--accent); border-color:var(--accent); color:#fff}
+.su-r{border-left:1px solid var(--ink); padding-left:16px; max-height:70vh; overflow:auto}
+.su-r h4{font-family:var(--mono); font-weight:500; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:12px 0 6px}
+.su-sec{display:grid; grid-template-columns:64px minmax(0,1fr); gap:10px; padding:7px 0; border-bottom:1px dotted var(--soft)}
+.su-sec img{width:64px; height:64px; object-fit:cover; border:1px solid var(--ink)}
+.su-sec b{font-family:Inter,system-ui,sans-serif; font-size:16px}
+.su-sec small{display:block; color:#555; font-size:12px; margin-bottom:3px}
+.su-sec ol{list-style:none; margin:0; padding:0}
+.su-sec li{font-family:Inter,system-ui,sans-serif; font-size:13px; line-height:1.35; display:grid; grid-template-columns:16px 1fr}
+.su-sec li i{font-style:normal; font-family:var(--mono); color:var(--accent)}
+.md .mdimg{display:block; max-width:100%; border:1px solid var(--ink); margin:0 0 10px}
+.md .mdgal{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:6px; margin:6px 0 12px}
+.md .mdgal a{display:flex; flex-direction:column; border:1px solid var(--ink); text-decoration:none; color:var(--ink); cursor:pointer}
+.md .mdgal img{width:100%; aspect-ratio:3/2; object-fit:cover}
+.md .mdgal b{font-size:13px; padding:4px 6px 0}
+.md .mdgal small{font-size:10.5px; color:#666; padding:0 6px 6px; line-height:1.3}
+@media (max-width:900px){ .su{grid-template-columns:1fr} .su-r{border-left:none; padding-left:0} }
+
+/* правая колонка: анкета сворачивается, агенты – только на уровне 3, раздел забирает место */
+#colR{grid-template-rows:auto minmax(0,1fr) auto auto}
+#anketaP.compact #qa{display:none}
+#anketaP.compact{padding-bottom:4px}
+body.nolanes #lanesP{display:none}
+#askP{overflow:auto}
+.sc img{aspect-ratio:16/9}
+.brand h1{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.brand p{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}

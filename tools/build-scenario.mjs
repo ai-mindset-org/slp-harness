@@ -35,3 +35,4 @@ for (const level of [1, 2, 3]) {
   console.log(`уровень ${level} → web/${name} · ${tl.phases.length} фаз · ${files.size} файлов · ${(tl.duration / 1000).toFixed(0)} с`);
 }
 fs.writeFileSync(path.join(root, 'web', 'kit-docs.json'), JSON.stringify({ generated: new Date().toISOString(), docs: {} }));
+await import('./export-tools.mjs');

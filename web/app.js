@@ -26,6 +26,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
 
   // ---------- layers: one shape per abstraction ----------
   const LAYERS = {
+    section:    { label: 'раздел',     sym: 'square',   fill: false,   size: 1300, glyph: '▣' },
     hub:        { label: 'хаб',        sym: 'diamond',  fill: true,    size: 380, glyph: '◆', ax: 0,     ay: -0.08 },
     context:    { label: 'компания',   sym: 'square',   fill: true,    size: 190, glyph: '■', ax: -0.55, ay: -0.62 },
     raw:        { label: 'сырьё',      sym: 'square',   fill: false,   size: 90,  glyph: '▫', ax: -0.86, ay: -0.5 },
@@ -37,7 +38,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     competitor: { label: 'конкурент',  sym: 'star',     fill: false,   size: 180, glyph: '☆', ax: 0.86,  ay: -0.46 },
     channel:    { label: 'канал',      sym: 'chev',     fill: false,   size: 150, glyph: '➤', ax: 0.66,  ay: 0.0 },
     tool:       { label: 'инструмент', sym: 'triangle', fill: false,   size: 150, glyph: '△', ax: 0.9,   ay: 0.3 },
-    guide:      { label: 'процесс',    sym: 'asterisk', fill: false,   size: 130, glyph: '✳', ax: -0.3,  ay: -0.3 },
+    guide:      { label: 'гайд',    sym: 'asterisk', fill: false,   size: 130, glyph: '✳', ax: -0.3,  ay: -0.3 },
     skill:      { label: 'скилл',      sym: 'circle',   fill: false,   size: 150, glyph: '○', ax: 0.06,  ay: 0.12 },
     agent:      { label: 'агент',      sym: 'circle',   fill: 'accent', size: 240, glyph: '●', ax: 0.0,  ay: 0.5 },
     output:     { label: 'задача',     sym: 'square',   fill: 'hair',  size: 150, glyph: '▢', ax: 0.2,   ay: 0.86 },
@@ -74,6 +75,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
   const CHANNELS = [['linkedin', 'LinkedIn'], ['telegram', 'Telegram'], ['carousel', 'карусель'], ['landing', 'лендинг']];
 
   function layerOf(p) {
+    if (/^(company|sources|meetings|asks|rules|people|audience|competitors|channels|tools|guides|tasks|checks|routines|dashboards|metrics)\/README\.md$/.test(p)) return 'section';
     if (p === 'README.md' || p === 'CLAUDE.md' || p === 'AGENTS.md') return 'hub';
     if (p === '.mcp.json') return 'tool';
     const top = p.split('/')[0];
@@ -89,6 +91,12 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     channel: 'channel', tool: 'tool', task: 'output', check: 'eval', metric: 'eval', routine: 'automation', dashboard: 'dashboard', class: 'cls', track: 'track',
     cluster: 'cluster', person: 'person', participant: 'person', guest: 'guest', speaker: 'guest', hub: 'hub' };
   const layerAt = (p) => (S.files.get(p) || {}).layer || layerOf(p);
+  // '../rules/{rule} x.md' seen from 'asks/a.md' → 'rules/{rule} x.md'
+  function joinPath(from, rel) {
+    const out = from.split('/').slice(0, -1);
+    for (const part of rel.split('/')) { if (part === '..') out.pop(); else if (part && part !== '.') out.push(part); }
+    return out.join('/');
+  }
   function frontmatter(text) {
     const m = /^---\n([\s\S]*?)\n---/.exec(text || '');
     const fm = {};
@@ -104,6 +112,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     const isMd = path.endsWith('.md');
     let title = bare(base(path));
     if (layer === 'skill') title = fm.name || title;
+    if (layer === 'section') title = fm.title || path.split('/')[0];
     if (layer === 'nucleus') title = fm.id || title.split(' ')[0];
     if (layer === 'output') title = (path.includes('/covers/') ? '3:1 ' : '') + title.split(' ').slice(0, path.includes('/landing/') ? 3 : 1).join(' ') + (path.endsWith('.html') ? ' ⧉' : '');
     if (path === '.mcp.json') title = '.mcp.json';
@@ -114,6 +123,8 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
       let m; while ((m = re.exec(prose))) links.push(norm(m[1]));
       const tick = /`([\w./{} –-]+\.(?:md|json|mjs|css))`/g;
       while ((m = tick.exec(content || ''))) if (!m[1].includes('<')) links.push(norm(m[1]));
+      const mdl = /\]\(<([^>]+)>\)|\]\(([^)\s<>]+\.(?:md|html))\)/g;
+      while ((m = mdl.exec(prose))) { let t = m[1] || m[2]; try { t = decodeURIComponent(t); } catch { /* raw */ } if (!/^https?:/.test(t)) links.push(norm(joinPath(path, t))); }
     }
     if (path.endsWith('.html')) links.push(norm(path.replace(/\.html$/, '')));
     return { path, layer, title, fm, links: [...new Set(links)], content };
@@ -206,8 +217,11 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     .alphaDecay(0.03)
     .on('tick', ticked);
   const VERTICAL = new Set(['source', 'research', 'eval', 'dashboard']);
+  const SEC_AT = { company: 'context', sources: 'raw', meetings: 'source', asks: 'research', rules: 'rule', people: 'role', audience: 'segment', competitors: 'competitor',
+    channels: 'channel', tools: 'tool', guides: 'guide', tasks: 'output', checks: 'eval', routines: 'automation', dashboards: 'dashboard', metrics: 'eval' };
   function anchor(d) {
-    const L = LAYERS[d.layer];
+    const L0 = LAYERS[d.layer];
+    const L = d.layer === 'section' && d.file ? { ...LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'], ax: (LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'].ax || 0) * 0.82, ay: (LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'].ay || 0) * 0.82 } : L0;
     if (L.ax === undefined) return { x: d.x ?? W / 2, y: d.y ?? H / 2 };
     const off = d.slotN > 1 ? d.slot - (d.slotN - 1) / 2 : 0;
     const vertical = VERTICAL.has(d.layer);
@@ -290,6 +304,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
       (enter) => {
         const g = enter.append('g').attr('class', 'node');
         g.append('path');
+        g.append('image').attr('preserveAspectRatio', 'xMidYMid slice');
         g.append('text').attr('text-anchor', 'middle');
         g.call(d3.drag().on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.2).restart(); d.fx = d.x; d.fy = d.y; })
           .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
@@ -307,6 +322,9 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     nodeSel.select('path').attr('d', (d) => d3.symbol(SYM[LAYERS[d.layer].sym], LAYERS[d.layer].size)())
       .attr('fill', (d) => { const f = LAYERS[d.layer].fill; return f === true ? '#0a0a0a' : f === 'accent' ? (d.running ? '#d7261e' : '#0a0a0a') : f === 'hair' ? '#e6e6e6' : '#fff'; })
       .attr('stroke', (d) => (d.layer === 'agent' ? (d.running ? '#d7261e' : '#0a0a0a') : null));
+    nodeSel.select('image').attr('display', (d) => (d.layer === 'section' ? null : 'none'))
+      .attr('href', (d) => (d.layer === 'section' && d.file ? `assets/metaphors/${d.file.path.split('/')[0]}-sq.webp` : null))
+      .attr('x', -17).attr('y', -17).attr('width', 34).attr('height', 34);
     nodeSel.select('text').text((d) => (d.title.length > 24 ? d.title.slice(0, 22).trimEnd() + '…' : d.title)).attr('dy', (d) => Math.sqrt(LAYERS[d.layer].size) / 1.5 + 11);
     nodeSel.selectAll('circle.pulse').remove();
     nodeSel.filter((d) => d.running).insert('circle', 'path').attr('class', 'pulse').attr('r', 14);
@@ -422,6 +440,8 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     }).join('');
     document.getElementById('qaCount').textContent = `${partial ? partial.i : shown}/${qs2.length}`;
     document.getElementById('anketaP').classList.toggle('compact', !!S.phase && !['p00', 'p01'].includes(S.phase));
+    const lvl = (META.phases.find((p) => p.id === S.phase) || {}).level || (S.phase === 'done' ? 3 : 1);
+    document.body.classList.toggle('nolanes', MODE === 'replay' && lvl < 3);
   }
 
   function renderLanes() {
@@ -510,6 +530,13 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     document.getElementById('phaseLabel').textContent = S.phase === 'done' ? 'готово · харнесс собран' : ph ? `${ph.id.slice(1)} · ${ph.title}` : '00 · пустая папка';
     document.querySelector('#bar i').style.width = `${Math.min(100, progress * 100)}%`;
   }
+  let SECTIONS = {};
+  fetch('sections.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : {})).then((j) => { SECTIONS = j; markDirty(); }).catch(() => {});
+  const RQ = ['просто', 'средне', 'сложно'];
+  function sectionCard(id, s) {
+    return `<div class="sc"><img src="assets/metaphors/${id}.webp" alt=""><div class="sc-h"><b>${esc(s.title)}</b><span>${esc(s.metaphor)}</span></div></div>
+      <p class="sc-w">${esc(s.what)}</p><ol class="rq">${s.requests.map((r, i) => `<li style="animation-delay:${0.25 + i * 0.9}s"><i>${i + 1} · ${RQ[i]}</i><span>${esc(r)}</span></li>`).join('')}</ol>`;
+  }
   function renderNarr() {
     document.getElementById('narrText').textContent = S.narr || '–';
     document.getElementById('narrTag').textContent = S.narrTag;
@@ -526,8 +553,14 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
       : META.phases.find((p) => p.id === S.phase) || (S.phase === 'done' ? META.phases[META.phases.length - 1] : null);
     const askEl = document.getElementById('ask');
     if (askEl) {
-      askEl.innerHTML = ph && ph.ask ? `<p class="ak-q">${esc(ph.ask)}</p>` : '<p class="cap">запрос появится вместе с первой фазой</p>';
-      document.getElementById('askLevel').textContent = ph ? (typeof ph.level === 'number' ? `уровень ${ph.level}` : ph.level) : '';
+      const secId = S.lastFile && S.lastFile.includes('/') ? S.lastFile.split('/')[0] : null;
+      const sec = secId && SECTIONS[secId];
+      const key = sec ? `s:${secId}` : `p:${ph ? ph.ask : ''}`;
+      if (askEl.dataset.key !== key) {
+        askEl.dataset.key = key;
+        askEl.innerHTML = sec ? sectionCard(secId, sec) : ph && ph.ask ? `<p class="ak-q">${esc(ph.ask)}</p>` : '<p class="cap">запросы появятся вместе с первым разделом</p>';
+      }
+      document.getElementById('askLevel').textContent = sec ? `уровень ${sec.level}` : ph ? (typeof ph.level === 'number' ? `уровень ${ph.level}` : ph.level) : '';
     }
   }
   document.getElementById('narrFile').addEventListener('click', (e) => { const p = e.currentTarget.dataset.p; if (p) openPreview(p); });
@@ -580,6 +613,12 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
         const hit = idx && idx.get(norm(unesc(t)));
         return hit ? `<a class="wl" data-p="${esc(hit)}">${label || esc(bare(unesc(t)))}</a>` : `<a class="wl miss" title="файла ещё нет">${label || t}</a>`;
       })
+      .replace(/!\[([^\]]*)\]\((?:\.\.\/)*_assets\/([\w-]+)\/([^)]+)\)/g, (m, alt, dir, f) => `<img class="mdimg ${dir}" alt="${alt}" src="assets/${dir}/${f}">`)
+      .replace(/\[([^\]]+)\]\(&lt;([^&]+?)&gt;\)|\[([^\]]+)\]\(([^)\s:]+\.(?:md|html))\)/g, (m, l1, t1, l2, t2) => {
+        const label = l1 || l2; let t = unesc(t1 || t2); try { t = decodeURIComponent(t); } catch { /* raw */ }
+        const hit = idx && (idx.get(norm(joinPath(MD_FROM, t))) || idx.get(norm(t.split('/').pop())));
+        return hit ? `<a class="wl" data-p="${esc(hit)}">${label}</a>` : `<span class="wl miss" title="файла ещё нет">${label}</span>`;
+      })
       .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')).replace(/(<a [^>]*>)<a [^>]*>([^<]*)<\/a>/g, '$1$2');
   }
   const BLOCK = /^(#{1,4}\s|```|\s*[-*]\s|\s*\d+[.)]\s|\s*\||>|---+\s*$)/;
@@ -591,7 +630,14 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
       <div class="kv">${n('tokens_in') != null ? `<span>вход ${tok(n('tokens_in'))}</span><span>кэш ${tok(n('tokens_cached') || 0)}</span><span>выход ${tok(n('tokens_out'))}</span>` : ''}${fm.cost_usd ? `<span>$${esc(fm.cost_usd)}</span>` : ''}${fm.launched_by ? `<span>запустил: ${esc(fm.launched_by)}</span>` : ''}</div>
       ${local && SESSION ? `<div class="acts"><button type="button" data-run="${esc(local.id)}">поток и шаги</button>${local.commit ? `<button type="button" data-act="commit" data-h="${esc(local.commit)}">коммит ${esc(local.commit)}</button>` : ''}</div>` : ''}</div>`;
   }
+  let MD_FROM = '';
+  // the hub README keeps an html gallery for GitHub; here it becomes the same cards, clickable
+  function galleryHtml(line) {
+    const cells = [...line.matchAll(/<a href="([^"]+)\/"><img src="_assets\/metaphors\/([\w-]+)\.webp"[^>]*><\/a><br><b><a [^>]*>([^<]+)<\/a><\/b><br><sub>([^<]*)<\/sub>/g)];
+    return `<div class="mdgal">${cells.map((c) => `<a class="wl" data-p="${esc(decodeURIComponent(c[1]))}/README.md"><img src="assets/metaphors/${esc(c[2])}.webp" alt=""><b>${esc(c[3])}</b><small>${esc(c[4])}</small></a>`).join('')}</div>`;
+  }
   function mdRender(text) {
+    MD_FROM = (typeof PV !== 'undefined' && PV.path) || '';
     const idx = resolveIndex();
     const inl = (x) => mdInline(x, idx);
     let src = String(text || '').replace(/\r/g, '');
@@ -612,6 +658,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     const item = (x) => { const c = /^\[([ xX])\]\s+(.*)$/.exec(x); return c ? `<li class="task${c[1] === ' ' ? '' : ' did'}"><b>${c[1] === ' ' ? '☐' : '☑'}</b> ${inl(c[2])}</li>` : `<li>${inl(x)}</li>`; };
     while (i < L.length) {
       const l = L[i];
+      if (/^<table>/.test(l) && l.includes('_assets/metaphors')) { out += galleryHtml(l); i++; continue; }
       if (/^```/.test(l)) { const lang = l.slice(3).trim(); const b = []; i++; while (i < L.length && !/^```/.test(L[i])) b.push(L[i++]); i++; out += `<pre${lang ? ` data-lang="${esc(lang)}"` : ''}><code>${esc(b.join('\n'))}</code></pre>`; continue; }
       const h = /^(#{1,4})\s+(.*)$/.exec(l);
       if (h) { const lv = Math.min(3, h[1].length); const id = `h-${heads.length}`; if (lv === 2) heads.push({ id, t: h[2] }); out += `<h${lv} id="${lv === 2 ? id : ''}">${inl(h[2])}</h${lv}>`; i++; continue; }
@@ -668,7 +715,11 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
         if (frame.dataset.src !== want) { frame.removeAttribute('srcdoc'); frame.src = want; frame.dataset.src = want; }
       } else {
         const dirBase = MODE === 'live' ? `<base href="${fileUrl(PV.path.split('/').slice(0, -1).join('/') + '/')}">` : '';
-        const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">`;
+        // tools in dashboards/ may pull the map library, fonts and map tiles – only from these hosts
+        const tool = PV.path.startsWith('dashboards/');
+        const csp = tool
+          ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; script-src 'unsafe-inline' https://unpkg.com; img-src data: blob: https://tile.openstreetmap.org https://unpkg.com; font-src data: https://fonts.gstatic.com; connect-src 'none'; form-action 'none'; base-uri 'none'">`
+          : `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">`;
         const css = [...S.files.values()].filter(x => x.path.endsWith('.css')).map(x => x.content).join('\n');
         const doc = csp + '<style>' + css.replace(/</g, '\\3c ') + '</style>' + content;
         if (frame.dataset.doc !== doc) { frame.srcdoc = doc; frame.dataset.doc = doc; frame.dataset.src = ''; }
@@ -1280,6 +1331,25 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     else if (r.kind === 'future' && seekTo) { seekTo(r.at + 60); openPreview(r.p); }
     else if (jumpToPhase) jumpToPhase(r.i);
   }
+  function secsOpen() {
+    const order = Object.entries(SECTIONS).sort((a, b) => a[1].level - b[1].level);
+    $('secGrid').innerHTML = [1, 2, 3].map((lv) => `<h4>уровень ${lv} · ${['база', 'правила и карточки', 'агенты'][lv - 1]}</h4><div class="sg-row">` + order.filter(([, s]) => s.level === lv).map(([id, s]) => {
+      const here = S.files.has(`${id}/README.md`), fut = FUTURE.get(`${id}/README.md`);
+      const state = here ? 'есть в папке' : fut ? `появится в фазе ${String(fut.phase || '').slice(1)}` : MODE === 'replay' ? '' : 'нет в этой папке';
+      return `<button type="button" class="sgc${here ? '' : ' later'}" data-s="${id}"><img src="assets/metaphors/${id}.webp" alt="" loading="lazy"><b>${esc(s.title)}</b><small>${esc(s.what)}</small><ol>${s.requests.map((r, i) => `<li><i>${i + 1}</i>${esc(r)}</li>`).join('')}</ol><em>${esc(state)}</em></button>`;
+    }).join('') + '</div>').join('');
+    $('secs').hidden = false;
+  }
+  $('secsBtn').onclick = secsOpen;
+  $('secsClose').onclick = () => { $('secs').hidden = true; };
+  $('secs').addEventListener('click', (e) => {
+    if (e.target.id === 'secs') { $('secs').hidden = true; return; }
+    const b = e.target.closest('.sgc'); if (!b) return;
+    const p = `${b.dataset.s}/README.md`, fut = FUTURE.get(p);
+    $('secs').hidden = true;
+    if (!S.files.has(p) && fut && seekTo) seekTo(fut.at + 60);
+    if (S.files.has(p) || fut) openPreview(p);
+  });
   function searchOpen() { $('search').hidden = false; $('q').value = ''; searchRun(''); $('q').focus(); }
   function searchClose() { $('search').hidden = true; }
   $('searchBtn').onclick = searchOpen;
@@ -1288,6 +1358,7 @@ const SCENARIO_FILE = SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? 'scenar
     if (e.key === 'ArrowDown') { e.preventDefault(); QS.i = Math.min(QS.list.length - 1, QS.i + 1); searchPaint(); }
     if (e.key === 'ArrowUp') { e.preventDefault(); QS.i = Math.max(0, QS.i - 1); searchPaint(); }
     if (e.key === 'Enter') { e.preventDefault(); searchPick(QS.i); }
+    if (e.key === 'Escape' && !$('secs').hidden) { $('secs').hidden = true; return; }
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); searchClose(); }
   });
   $('qres').addEventListener('click', (e) => { const li = e.target.closest('li[data-k]'); if (li) searchPick(Number(li.dataset.k)); });

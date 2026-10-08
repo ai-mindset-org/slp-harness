@@ -18,13 +18,13 @@
 <header id="hd">
   <img class="logo" src="assets/slp-mark-black.png" alt="SLP">
   <div class="brand">
-    <h1>папка компании · SLP harness</h1>
-    <p>банный комплекс в Москве · уровень 1 база → 2 правила и карточки → 3 агенты</p>
+    <h1>папка компании</h1>
+    <p>SLP harness · банный комплекс в Москве</p>
   </div>
   <div class="navs">
     <button id="searchBtn" class="search" title="поиск по файлам и фазам · ⌘K">⌕ поиск <kbd>⌘K</kbd></button>
     <nav class="levels" aria-label="уровень"><a href="?level=1" data-l="1">1 · база</a><a href="?level=2" data-l="2">2 · правила и карточки</a><a href="./" data-l="3">3 · агенты</a></nav>
-    <a class="pagelink" href="https://github.com/ai-mindset-org/slp-harness" target="_blank" rel="noopener">GitHub ↗</a><a class="pagelink" href="https://slp-ai-business.lab.aimindset.org/programma.html" target="_blank" rel="noopener">программа ↗</a>
+    <button type="button" id="secsBtn" class="pagelink">разделы</button><button type="button" id="setupBtn" class="pagelink go">свой бизнес</button><a class="pagelink" href="https://github.com/ai-mindset-org/slp-harness" target="_blank" rel="noopener">GitHub ↗</a>
   </div>
   <div class="clock"><b id="phaseLabel">00 · пустая папка</b><span id="clock">00:00</span></div>
 </header>
@@ -74,7 +74,7 @@
 
   <section id="colR">
     <div class="panel" id="anketaP"><h2 class="fold-h" data-fold="qa"><span>04 · анкета</span><em id="qaCount">0/7</em></h2><dl id="qa"></dl></div>
-    <div class="panel" id="askP"><h2 class="fold-h" data-fold="ask"><span>05 · запрос агенту</span><em id="askLevel"></em></h2><div id="ask"></div></div>
+    <div class="panel" id="askP"><h2 class="fold-h" data-fold="ask"><span>05 · раздел и запросы агенту</span><em id="askLevel"></em></h2><div id="ask"></div></div>
     <div class="panel" id="lanesP"><h2 class="fold-h" data-fold="lanes"><span>06 · агенты</span><em id="laneCount">0</em></h2><div id="lanes"></div></div>
     <div class="panel" id="dashP">
       <div id="tabs"><button class="on" data-tab="dash">07 · срез</button><button data-tab="tools">инструменты</button><button data-tab="console" class="liveonly">консоль</button><button data-tab="sessions">сессии</button><button class="fold-t" data-fold="tabBody" title="свернуть блок">▾</button></div>
@@ -149,7 +149,7 @@
     <div class="st-hd"><span>SLP'26 · AI for Business · 14 октября</span><span>fig. 0</span></div>
     <h3 id="inTitle">папка компании: банный комплекс в Москве</h3>
     <p>вымышленный банный комплекс на 18 человек: будни пустые, отзывы без ответа, договорённости в WhatsApp администратора. за десять шагов пустая папка становится системой. <b>уровень 1</b> – база: паспорт, имена, встречи. <b>уровень 2</b> – правила, роли, гости, реальные конкуренты Москвы через Exa, каналы из класса про маркетинг. <b>уровень 3</b> – агенты ставят задачи и сами смотрят конкурентов. остановиться можно после любого уровня.</p>
-    <div class="resource-links"><a href="https://slp-ai-business.lab.aimindset.org/programma.html" target="_blank" rel="noopener">программа класса ↗</a><a href="https://slp-ai-business.lab.aimindset.org/anketa.html" target="_blank" rel="noopener">анкета группы ↗</a></div><ul id="inPoints">
+    <ul id="inPoints">
       <li>каждая фигура на графе – файл; линии – ссылки между файлами; оранжевое – то, что появилось только что</li><li>справа – запрос агенту на этой фазе: так формулируют задачу папке</li>
       <li>после каждой фазы – карточка с объяснением и кнопка «продолжить»; клик по фазе внизу возвращает к её карточке</li>
       <li>клик по узлу открывает файл, у файла есть ссылка на GitHub; <kbd>⌘K</kbd> – поиск; пробел – пауза; ← → – фазы</li>
@@ -180,8 +180,33 @@
   </div>
 </div>
 
+<div id="secs" hidden role="dialog" aria-label="разделы папки">
+  <div class="box">
+    <div class="st-hd"><span>разделы папки · метафора, что внутри, три запроса агенту от простого к сложному</span><button type="button" id="secsClose" aria-label="закрыть">×</button></div>
+    <div id="secGrid"></div>
+  </div>
+</div>
+
+<div id="setup" hidden role="dialog" aria-label="свой бизнес">
+  <div class="box">
+    <div class="st-hd"><span>свой бизнес · стартовая папка из анкеты · ответы остаются в этом браузере</span><button type="button" id="suClose" aria-label="закрыть">×</button></div>
+    <div class="su">
+      <div class="su-l">
+        <h3>Ваша компания</h3>
+        <div id="suPresets" class="chips"></div>
+        <div id="suForm"></div>
+        <div class="su-act"><button type="button" id="suZip" class="go">скачать папку .zip</button><button type="button" id="suCopy">скопировать первый запрос агенту</button></div>
+        <p id="suMsg" class="cap"></p>
+      </div>
+      <div class="su-r"><div class="cap">разделы и запросы агенту под вашу компанию</div><div id="suOut"></div></div>
+    </div>
+  </div>
+</div>
+
 <script src="vendor/d3.min.js"></script>
 <script src="app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="setup.js"></script>
 <script>(function(){var l=new URLSearchParams(location.search).get("level")||"3";document.querySelectorAll(".levels a").forEach(function(a){if(a.dataset.l===l)a.classList.add("on")});})();</script>
 </body>
 </html>
