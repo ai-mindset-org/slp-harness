@@ -46,7 +46,7 @@ S.forEach((s,i)=>h+=`<g class="sg" data-s="${s.id}"><circle cx="330" cy="${ys(i)
 CH.forEach((c,j)=>{const n=cnt(c);h+=`<g class="ch${n>=3?' hot':''}" data-c="${c}"><path d="M714,${yc(j)-8} L732,${yc(j)} L714,${yc(j)+8} Z"/><text x="744" y="${yc(j)+5}">${D.channels[c]} <tspan>· ${n}</tspan></text></g>`});
 sv.innerHTML=h;
 const card=document.getElementById('card');
-function hl(fs,fc){sv.querySelectorAll('.ln').forEach(l=>l.classList.toggle('on',(fs&&l.dataset.s===fs)||(fc&&l.dataset.c===fc)));sv.classList.toggle('dim',!!(fs||fc));
+function hl(fs,fc){sv.querySelectorAll('.ln').forEach(l=>l.classList.toggle('on',!!((fs&&l.dataset.s===fs)||(fc&&l.dataset.c===fc))));sv.classList.toggle('dim',!!(fs||fc));
   sv.querySelectorAll('.sg').forEach(g=>g.classList.toggle('on',fs?g.dataset.s===fs:fc?S.find(s=>s.id===g.dataset.s).channels.includes(fc):false));
   sv.querySelectorAll('.ch').forEach(g=>g.classList.toggle('on',fc?g.dataset.c===fc:fs?S.find(s=>s.id===fs).channels.includes(g.dataset.c):false));}
 sv.addEventListener('mouseover',e=>{const g=e.target.closest('.sg,.ch');if(!g)return;
