@@ -24,7 +24,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     document.getElementById('brandSub').textContent = "SLP'26 · папка группы, только на этом компьютере";
     document.getElementById('ghLink').hidden = true;
     document.getElementById('inTitle').textContent = 'как папка группы растёт';
-    document.getElementById('inLead').textContent = "поток SLP'26: 25 участников, 18 классов, гости-спикеры, чаты. типы те же двенадцать, что у папки компании: участник, гость и кластер – карточки контекста, класс – встреча. одиннадцать шагов, остановиться можно после любого.";
+    document.getElementById('inLead').textContent = "поток SLP'26: 25 участников, 18 классов, гости-спикеры, чаты. типы те же двенадцать, что у папки компании: участник, гость и кластер – карточки контекста, класс – встреча. десять шагов от пустой папки, остановиться можно после любого.";
   }
   document.querySelectorAll('.modes button').forEach((b) => {
     b.classList.toggle('on', b.dataset.mode === MODE);
