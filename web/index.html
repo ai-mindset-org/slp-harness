@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Папка компании · SLP harness</title>
-<meta name="description" content="Как пустая папка становится системой банного комплекса в Москве: база, правила и карточки, агенты. Пример для класса AI for Business, SLP'26.">
+<title>SLP harness · папка компании</title>
+<meta name="description" content="Как пустая папка становится системой компании: одиннадцать шагов на примере банного комплекса в Москве, каждый останавливается там, где ему достаточно. Класс AI for Business, SLP'26.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Папка компании · SLP harness">
-<meta property="og:description" content="Как пустая папка становится системой банного комплекса в Москве: база, правила и карточки, агенты. Пример для класса AI for Business, SLP'26.">
+<meta property="og:title" content="SLP harness · папка компании">
+<meta property="og:description" content="Одиннадцать шагов от пустой папки до системы: память, правила, контекст, агенты, проверка. Образец – банный комплекс в Москве.">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/slp-mark-black.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -19,13 +19,12 @@
   <img class="logo" src="assets/slp-mark-black.png" alt="SLP">
   <div class="brand">
     <h1>SLP harness</h1>
-    <p id="brandSub">папка компании растёт по фазам · уровни 1–3</p>
+    <p id="brandSub">Лунная каменка · банный комплекс, образец с GitHub</p>
   </div>
   <div class="navs">
-    <nav class="modes" aria-label="режим"><button type="button" data-mode="replay">сборка</button><button type="button" data-mode="live">папка</button></nav>
-    <button id="searchBtn" class="search" title="поиск по файлам и фазам · ⌘K">⌕ <kbd>⌘K</kbd></button>
-    <nav class="levels" aria-label="уровень"><a href="?level=1" data-l="1" title="уровень 1 · база">1 база</a><a href="?level=2" data-l="2" title="уровень 2 · правила и карточки">2 правила</a><a href="./" data-l="3" title="уровень 3 · агенты">3 агенты</a></nav>
-    <button type="button" id="secsBtn" class="pagelink">разделы</button><button type="button" id="setupBtn" class="pagelink go">свой бизнес</button><a class="pagelink" href="https://github.com/ai-mindset-org/slp-harness" target="_blank" rel="noopener">GitHub ↗</a>
+    <nav class="modes" aria-label="режим"><button type="button" data-mode="replay" title="папка растёт по шагам на глазах">история</button><button type="button" data-mode="live" title="открыть настоящую папку с этого компьютера">своя папка</button></nav>
+    <button id="searchBtn" class="search" title="поиск по файлам и шагам · ⌘K">⌕ <kbd>⌘K</kbd></button>
+    <button type="button" id="setupBtn" class="pagelink go">свой бизнес</button><a class="pagelink" id="ghLink" href="https://github.com/ai-mindset-org/slp-harness" target="_blank" rel="noopener">GitHub ↗</a>
   </div>
   <div class="clock"><b id="phaseLabel">00 · пустая папка</b><span id="clock">00:00</span></div>
 </header>
@@ -41,32 +40,31 @@
 
   <section id="colC" class="panel">
     <div class="gh">
-      <h2><span>03 · граф харнесса</span></h2>
+      <h2><span>03 · граф</span></h2>
       <div id="legend"></div>
     </div>
     <div id="stage">
-      <svg id="graph" role="img" aria-label="граф файлов харнесса"></svg>
+      <svg id="graph" role="img" aria-label="граф файлов папки"></svg>
       <div id="empty">пустая папка<br><small>git init · 0 файлов</small></div>
       <div id="liveHint" hidden></div>
       <div id="connect" hidden>
-        <div class="cn-hd"><span>Local · подключить папку</span><span class="cap" id="cnWhy">локальное хранение: папка на твоём компьютере, на сайте её нет</span></div>
+        <div class="cn-hd"><span>своя папка</span><span class="cap" id="cnWhy">обычная папка на твоём компьютере: граф читает её файлы, на сайт она не уходит</span></div>
+        <div class="cn-two">
+          <div class="cn-f"><b>Лунная каменка</b><small>образец банного комплекса · публично на GitHub</small><code>~/harness/lunnaya-kamenka</code></div>
+          <div class="cn-f" id="cnSlp"><b>SLP'26 · группа</b><small>та же система для группы: классы, участники, гости · только на компьютере ведущего</small><code>метка .local-only · без удалённого репозитория</code></div>
+        </div>
         <div class="cn-opt">
-          <b>01 · папка в браузере</b>
-          <p>выбери папку харнесса на компьютере или перетащи её сюда из Finder. граф строится из файлов, правки сохраняются прямо в них. без установки; агенты, сессии, откат и коммиты – в полном режиме. на телефоне папку не выбрать: подключай с компьютера.</p>
+          <b>01 · выбрать папку в браузере</b>
+          <p>граф строится из файлов, правки сохраняются прямо в них. без установки; работает в Chrome, Arc, Edge. на телефоне папку не выбрать.</p>
           <div class="cn-row"><button id="pickFolder" class="go" type="button">выбрать папку</button><button id="resumeFolder" type="button" hidden>продолжить с прошлой папкой</button><span class="cap" id="fsaNote">Chrome, Arc, Edge</span></div>
         </div>
         <div class="cn-opt">
-          <b>02 · полный режим: агенты, сессии, откат, форк, Obsidian</b>
-          <p>в терминале: скачать движок в новую папку (нужны git и Node.js 18+):</p>
+          <b>02 · полный режим: агенты, коммиты, откат, Obsidian</b>
+          <p>git clone скачивает движок в <code>~/slp-harness</code>. <code>new.sh</code> создаёт папку компании из образца: одиннадцать коммитов, по одному на шаг, и открывает её здесь на <code>localhost:4747</code>. Нужны git и Node.js 18+.</p>
           <div class="cmd"><code id="cmdClone">git clone https://github.com/ai-mindset-org/slp-harness.git ~/slp-harness</code><button type="button" data-copy="cmdClone">копировать</button></div>
-          <p>создать свою папку из кита банного комплекса и открыть граф. Существующую папку new.sh не перезаписывает:</p>
-          <div class="cmd"><code id="cmdOpen">~/slp-harness/bin/new.sh ~/harness/my-company</code><button type="button" data-copy="cmdOpen">копировать</button></div>
-          <div class="cn-row"><a class="btnlink" href="http://localhost:4747/?mode=live&amp;intro=0" target="_blank" rel="noopener">открыть localhost:4747 ↗</a><span class="cap">если граф уже запущен; при занятом 4747 open.sh берёт следующий порт и пишет адрес в терминале</span></div>
-          <p class="cap">свой харнесс с нуля: <code>~/slp-harness/bin/new.sh ~/harness/my-company</code> · копия с историей: <code>~/harness-engine/bin/fork.sh ~/harness/my-product ~/harness/my-try</code> · остановить: <code>~/harness-engine/bin/stop.sh [порт]</code> · нет gh: <code>brew install gh &amp;&amp; gh auth login</code></p>
-        </div>
-        <div class="cn-opt">
-          <b>03 · папка курса SLP</b>
-          <p>второй слой: классы, треки, гости и кластеры участников по бэкграунду. Папка живёт только на компьютере, в git и на сайт не попадает. Выбери её кнопкой «выбрать папку» – граф соберётся по полю <code>type</code> в карточках.</p>
+          <div class="cmd"><code id="cmdOpen">~/slp-harness/bin/new.sh ~/harness/lunnaya-kamenka</code><button type="button" data-copy="cmdOpen">копировать</button></div>
+          <p class="cap">своя папка с нуля: кнопка «свой бизнес» вверху · открыть существующую: <code>~/slp-harness/bin/open.sh &lt;папка&gt;</code> · остановить: <code>~/slp-harness/bin/stop.sh</code> · перед пушем: <code>bash checks/check-git-private.sh</code></p>
+          <div class="cn-row"><a class="btnlink" href="http://localhost:4747/?mode=live&amp;intro=0" target="_blank" rel="noopener">открыть localhost:4747 ↗</a><span class="cap">если граф уже запущен</span></div>
         </div>
       </div>
     </div>
@@ -74,11 +72,11 @@
   </section>
 
   <section id="colR">
-    <div class="panel" id="anketaP"><h2 class="fold-h" data-fold="qa"><span>04 · анкета</span><em id="qaCount">0/7</em></h2><dl id="qa"></dl></div>
-    <div class="panel" id="askP"><h2 class="fold-h" data-fold="ask"><span>05 · раздел и запросы агенту</span><em id="askLevel"></em></h2><div id="ask"></div></div>
-    <div class="panel" id="lanesP"><h2 class="fold-h" data-fold="lanes"><span>06 · агенты</span><em id="laneCount">0</em></h2><div id="lanes"></div></div>
+    <div class="panel" id="askP"><h2 class="fold-h" data-fold="ask"><span>04 · шаг</span><em id="askLevel"></em></h2><div id="ask"></div></div>
+    <div class="panel" id="anketaP"><h2 class="fold-h" data-fold="qa"><span>анкета</span><em id="qaCount">0/7</em></h2><dl id="qa"></dl></div>
+    <div class="panel" id="lanesP"><h2 class="fold-h" data-fold="lanes"><span>агенты</span><em id="laneCount">0</em></h2><div id="lanes"></div></div>
     <div class="panel" id="dashP">
-      <div id="tabs"><button class="on" data-tab="dash">07 · срез</button><button data-tab="tools">инструменты</button><button data-tab="console" class="liveonly">консоль</button><button data-tab="sessions">сессии</button><button class="fold-t" data-fold="tabBody" title="свернуть блок">▾</button></div>
+      <div id="tabs"><button class="on" data-tab="dash">05 · срез</button><button data-tab="tools">инструменты</button><button data-tab="console" class="liveonly">консоль</button><button data-tab="sessions">сессии</button><button class="fold-t" data-fold="tabBody" title="свернуть блок">▾</button></div>
       <div id="tabBody">
         <div class="tabpane" data-tab="dash"><div id="metrics"></div><div id="coverage"></div></div>
         <div class="tabpane" data-tab="tools" hidden><div id="tools"></div></div>
@@ -91,9 +89,9 @@
             <div id="cPresets">
               <button type="button" data-p="Прочитай AGENTS.md. Что мы обещали корпоративному клиенту? Ответь таблицей: обещание, кто, срок, откуда – со ссылками на файлы. Ничего не меняй.">вопрос к папке</button>
               <button type="button" data-p="Прочитай AGENTS.md и routines/{routine} после встречи.md. По последней встрече в meetings/ сделай задачи в tasks/ с полями owner, due, source. Цена и скидка – задача управляющему. Потом проверка в checks/.">задачи из встречи</button>
-              <button type="button" data-p="Прочитай AGENTS.md и tools/{tool} exa.md. Через Exa обнови две карточки в competitors/: цены и рейтинг с источником и датой. Не нашёл – пиши «не найдено». Если Exa MCP недоступен, ничего не пиши и объясни, что настроить.">конкуренты · Exa</button>
-              <button type="button" data-p="Прочитай AGENTS.md. Какой канал из channels/ быстрее всего заполнит будни до 17:00 при бюджете 50 000 ₽? Обоснуй ссылками на audience/ и competitors/. Ничего не меняй.">канал на будни</button>
-              <button type="button" data-p="Прочитай AGENTS.md. Кого из guests/ позвать гостем на класс 05 и почему? Учти кластеры участников и что им откликнется. Ответь ссылками на карточки, ничего не меняй.">гость на класс</button>
+              <button type="button" data-p="Прочитай AGENTS.md и tools/{tool} exa.md. Через Exa обнови две карточки конкурентов в context/: цены и рейтинг с источником и датой. Не нашёл – пиши «не найдено». Если Exa MCP недоступен, ничего не пиши и объясни, что настроить.">конкуренты · Exa</button>
+              <button type="button" data-p="Запусти bash checks/check-git-private.sh и разбери отчёт: что закоммитить, что убрать из файлов, есть ли удалённый репозиторий там, где его быть не должно. Сам ничего не удаляй и не пушь – список и предложение человеку.">git и приватные данные</button>
+              <button type="button" data-p="Прочитай AGENTS.md. Кого из карточек {context} гость позвать на класс 05 и почему? Учти кластеры участников. Ответь ссылками на карточки, ничего не меняй.">гость на класс</button>
             </div>
             <div class="crow"><button type="submit">запустить</button><span id="cStatus" class="cap">запуск отправляет задачу выбранному AI-провайдеру; используются ваши доступы · сервер сотника: <b id="consoleHost">–</b></span></div>
             <div id="cMsg" class="cap"></div>
@@ -107,17 +105,18 @@
 
 <footer id="tl">
   <div class="ctrl" id="ctrl">
-    <button id="prev" title="предыдущая фаза · ←">⏮</button>
+    <button id="prev" title="предыдущий шаг · ←">⏮</button>
     <button id="play" title="пауза · пробел">❚❚</button>
-    <button id="next" title="следующая фаза · →">⏭</button>
+    <button id="next" title="следующий шаг · →">⏭</button>
     <button id="speed" title="скорость">1×</button>
     <button id="end" title="в конец · End">⇥</button>
     <button id="restart" title="сначала · r">↺</button>
-    <button id="stopsBtn" title="остановки с пояснением после каждой фазы · s">стопы</button>
+    <button id="stopsBtn" title="карточка после каждого шага · s">стопы</button>
   </div>
   <div id="phases"></div>
   <div id="bar"><i></i></div>
 </footer>
+<div id="phPrev" hidden></div>
 
 <aside id="preview" hidden>
   <header><div><b id="pvTitle"></b><span id="pvPath"></span></div><button id="pvClose" aria-label="закрыть">×</button></header>
@@ -125,7 +124,7 @@
     <button id="pvFull" title="во весь экран · f">⤢</button><button id="pvView" class="on fileonly" title="как читается">вид</button><button id="pvRaw" class="fileonly" title="исходный текст">исходник</button><button id="pvEdit" class="liveonly editonly fileonly" title="править файл с живым превью">править</button><button id="pvHist" class="liveonly srvonly fileonly" title="версии файла: посмотреть, сравнить, вернуть">история</button>
     <span class="sp"></span>
     <button id="pvSave" class="liveonly editonly" hidden title="сохранить и закоммитить · ⌘S">сохранить</button>
-    <span class="pvbr fileonly"></span><span class="pvlab fileonly">открыть</span><button id="pvObs" class="liveonly srvonly fileonly" title="открыть файл в Obsidian">Obsidian</button><button id="pvFinder" class="liveonly srvonly fileonly" title="показать в Finder">Finder</button><button id="pvApp" class="liveonly srvonly fileonly" title="открыть в приложении по умолчанию">приложение</button><a id="pvGh" class="pvlink fileonly" target="_blank" rel="noopener" title="файл в репозитории GitHub · нужен доступ к ai-mindset-org">GitHub ↗</a><button id="pvDl" class="fileonly" title="скачать файл и открыть у себя">скачать</button>
+    <span class="pvbr fileonly"></span><span class="pvlab fileonly">открыть</span><button id="pvObs" class="liveonly srvonly fileonly" title="открыть файл в Obsidian">Obsidian</button><button id="pvFinder" class="liveonly srvonly fileonly" title="показать в Finder">Finder</button><button id="pvApp" class="liveonly srvonly fileonly" title="открыть в приложении по умолчанию">приложение</button><a id="pvGh" class="pvlink fileonly" target="_blank" rel="noopener" title="файл в репозитории GitHub">GitHub ↗</a><button id="pvDl" class="fileonly" title="скачать файл и открыть у себя">скачать</button>
   </div>
   <div id="pvLinks"></div>
   <div id="pvWrap">
@@ -139,7 +138,7 @@
 
 <div id="search" hidden role="dialog" aria-label="поиск">
   <div class="box">
-    <input id="q" autocomplete="off" spellcheck="false" placeholder="файл, правило, конкурент, канал, фаза…">
+    <input id="q" autocomplete="off" spellcheck="false" placeholder="файл, правило, конкурент, канал, шаг…">
     <ol id="qres"></ol>
     <div class="cap">↑↓ выбрать · Enter открыть · Esc закрыть</div>
   </div>
@@ -149,24 +148,26 @@
   <div class="card">
     <div class="st-hd"><span>SLP'26 · AI for Business · 14 октября</span><span>fig. 0</span></div>
     <h3 id="inTitle">как папка компании растёт</h3>
-    <p>банный комплекс на 18 человек: будни пустые, отзывы без ответа, договорённости в WhatsApp. за одиннадцать фаз пустая папка становится системой. <b>1</b> – паспорт, имена, встречи. <b>2</b> – правила, роли, гости, конкуренты, каналы. <b>3</b> – агенты ставят задачи и следят за рынком. остановиться можно после любого уровня.</p>
+    <p id="inLead">банный комплекс на 18 человек: будни пустые, отзывы без ответа, договорённости в WhatsApp. одиннадцать шагов – от пустой папки до системы, которую читают люди и агенты. линия одна: каждый следующий шаг опирается на предыдущий, остановиться можно после любого.</p>
     <ul id="inPoints">
-      <li>каждая фигура на графе – файл; линии – ссылки между файлами; оранжевое – то, что появилось только что</li><li>справа – запрос агенту на этой фазе: так формулируют задачу папке</li>
-      <li>после каждой фазы – карточка с объяснением и кнопка «продолжить»; клик по фазе внизу возвращает к её карточке</li>
-      <li>клик по узлу открывает файл, у файла есть ссылка на GitHub; <kbd>⌘K</kbd> – поиск; пробел – пауза; ← → – фазы</li>
-          </ul>
-    <div class="st-ft"><button id="inEnd" type="button">сразу финал</button><span class="sp"></span><button id="inGo" type="button" class="go">смотреть сборку →</button></div>
+      <li>фигура на графе – файл, линия – ссылка между файлами; красное – то, что появилось только что</li>
+      <li>справа – шаг: кто его делает, какой агент помогает, что берём и что кладём в папку, сколько времени</li>
+      <li>после каждого шага – карточка: что изменилось в папке и можно ли здесь остановиться</li>
+      <li>внизу – шаги; наведи – превью, клик – к карточке шага. <kbd>⌘K</kbd> – поиск, пробел – пауза, ← → – шаги</li>
+    </ul>
+    <div class="st-ft"><button id="inEnd" type="button">сразу финал</button><span class="sp"></span><button id="inGo" type="button" class="go">смотреть историю →</button></div>
   </div>
 </div>
 
 <div id="stop" hidden role="dialog" aria-modal="true" aria-labelledby="stTitle">
   <div class="card">
-    <div class="st-hd"><span id="stNum">фаза 00</span><span id="stStep">1 / 10</span></div>
+    <div class="st-hd"><span id="stNum">шаг 00</span><span id="stStep">1 / 11</span></div>
     <div class="st-cols">
       <div class="st-main">
         <h3 id="stTitle"></h3>
         <p id="stLead"></p>
         <ul id="stPoints"></ul>
+        <dl id="stHow" hidden></dl>
         <div id="stAsk" hidden></div>
         <div id="stHalt" hidden></div>
         <div id="stFiles"></div>
@@ -174,17 +175,10 @@
       <div id="stTree"></div>
     </div>
     <div class="st-ft">
-      <button id="stOff" type="button" title="смотреть без остановок">без остановок</button>
+      <button id="stOff" type="button" title="смотреть без остановок">без карточек</button>
       <span class="sp"></span>
       <button id="stGo" type="button" class="go">продолжить →</button>
     </div>
-  </div>
-</div>
-
-<div id="secs" hidden role="dialog" aria-label="разделы папки">
-  <div class="box">
-    <div class="st-hd"><span>разделы папки · метафора, что внутри, три запроса агенту от простого к сложному</span><button type="button" id="secsClose" aria-label="закрыть">×</button></div>
-    <div id="secGrid"></div>
   </div>
 </div>
 
@@ -199,7 +193,7 @@
         <div class="su-act"><button type="button" id="suZip" class="go">скачать папку .zip</button><button type="button" id="suCopy">скопировать первый запрос агенту</button></div>
         <p id="suMsg" class="cap"></p>
       </div>
-      <div class="su-r"><div class="cap">разделы и запросы агенту под вашу компанию</div><div id="suOut"></div></div>
+      <div class="su-r"><div class="cap">двенадцать разделов и запросы агенту под вашу компанию, от простого к сложному</div><div id="suOut"></div></div>
     </div>
   </div>
 </div>
@@ -208,7 +202,5 @@
 <script src="app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="setup.js"></script>
-<script>(function(){var q=new URLSearchParams(location.search);if(q.get("kit")==="slp"){var b=document.getElementById("brandSub");if(b)b.textContent="SLP'26 · папка сообщества растёт по фазам · только на этом компьютере";}})();</script>
-<script>(function(){var l=new URLSearchParams(location.search).get("level")||"3";document.querySelectorAll(".levels a").forEach(function(a){if(a.dataset.l===l)a.classList.add("on")});})();</script>
 </body>
 </html>

@@ -134,7 +134,7 @@ export function buildTimeline(kitDir, answersOverride) {
       t = end;
     }
     events.push({ at: t, type: 'commit', msg: ph.commit, phase: ph.id });
-    phases.push({ id: ph.id, title: ph.title, start, end: t, parallel: !!ph.parallel, stop: ph.stop || null, level: ph.level || 1, ask: ph.ask || null, halt: ph.halt || null });
+    phases.push({ id: ph.id, title: ph.title, start, end: t, parallel: !!ph.parallel, stop: ph.stop || null, ask: ph.ask || null, how: ph.how || null });
     t += 600;
   }
   events.sort((a, b) => a.at - b.at || order(a) - order(b));

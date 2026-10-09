@@ -2,10 +2,8 @@
  * replay: plays web/scenario.json (built from kit/ by tools/build-scenario.mjs)
  * live:   polls /api/state of tools/harness-server.mjs; console dispatches claude / codex / sotnik
  */
-const SCENARIO_LEVEL = new URLSearchParams(location.search).get('level');
 const SCENARIO_KIT = new URLSearchParams(location.search).get('kit') === 'slp' ? 'slp' : '';
-const SCENARIO_BASE = SCENARIO_KIT ? 'local/scenario-slp' : 'scenario';
-const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL === '2' ? '-' + SCENARIO_LEVEL : '') + '.json';
+const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json';
 (() => {
   'use strict';
   const qs = new URLSearchParams(location.search);
@@ -21,7 +19,13 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
   document.body.classList.toggle('live', MODE !== 'replay');
   document.body.classList.toggle('team', TEAM);
   const keepKit = (u) => { if (SCENARIO_KIT) u.searchParams.set('kit', SCENARIO_KIT); return u; };
-  document.querySelectorAll('.levels a').forEach((a) => { const u = keepKit(new URL(a.getAttribute('href'), location.href)); u.searchParams.delete('mode'); a.href = u.toString(); });
+  // the SLP group folder: its own subtitle, no GitHub (it never leaves this computer)
+  if (SCENARIO_KIT) {
+    document.getElementById('brandSub').textContent = "SLP'26 · папка группы, только на этом компьютере";
+    document.getElementById('ghLink').hidden = true;
+    document.getElementById('inTitle').textContent = 'как папка группы растёт';
+    document.getElementById('inLead').textContent = "поток SLP'26: 23 участника, 18 классов, гости-спикеры, чаты. типы те же двенадцать, что у папки компании: участник, гость и кластер – карточки контекста, класс – встреча. одиннадцать шагов, остановиться можно после любого.";
+  }
   document.querySelectorAll('.modes button').forEach((b) => {
     b.classList.toggle('on', b.dataset.mode === MODE);
     b.onclick = () => { const u = keepKit(new URL(location.href)); u.searchParams.set('mode', b.dataset.mode); if (b.dataset.mode === 'replay') { u.searchParams.delete('mode'); u.searchParams.set('intro', '0'); } location.href = u.toString(); };
@@ -32,21 +36,21 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
   const LAYERS = {
     section:    { label: 'раздел',     sym: 'square',   fill: 'hair',  size: 340,  glyph: '▣' },
     hub:        { label: 'хаб',        sym: 'diamond',  fill: true,    size: 380, glyph: '◆', ax: 0,     ay: -0.08 },
-    context:    { label: 'компания',   sym: 'square',   fill: true,    size: 190, glyph: '■', ax: -0.55, ay: -0.62 },
-    raw:        { label: 'сырьё',      sym: 'square',   fill: false,   size: 90,  glyph: '▫', ax: -0.86, ay: -0.5 },
-    source:     { label: 'встреча',    sym: 'square',   fill: false,   size: 150, glyph: '□', ax: -0.86, ay: 0.22 },
+    context:    { label: 'контекст',   sym: 'square',   fill: true,    size: 150, glyph: '■', ax: -0.3,  ay: -0.42 },
+    raw:        { label: 'сырьё',      sym: 'square',   fill: false,   size: 90,  glyph: '▫', ax: -0.9,  ay: -0.36 },
+    source:     { label: 'встреча',    sym: 'square',   fill: false,   size: 150, glyph: '□', ax: -0.9,  ay: 0.3 },
     research:   { label: 'вопрос',     sym: 'wye',      fill: false,   size: 160, glyph: 'Y', ax: -0.62, ay: 0.62 },
-    rule:       { label: 'правило',    sym: 'diamond',  fill: false,   size: 170, glyph: '◇', ax: -0.06, ay: -0.86 },
-    role:       { label: 'роль',       sym: 'hexagon',  fill: false,   size: 160, glyph: '⬡', ax: -0.36, ay: -0.92 },
+    rule:       { label: 'правило',    sym: 'diamond',  fill: false,   size: 170, glyph: '◇', ax: -0.5,  ay: -0.92 },
+    role:       { label: 'роль',       sym: 'hexagon',  fill: false,   size: 160, glyph: '⬡', ax: -0.56, ay: -0.66 },
     segment:    { label: 'гости',      sym: 'circle',   fill: 'hair',  size: 170, glyph: '◍', ax: 0.36,  ay: -0.86 },
     competitor: { label: 'конкурент',  sym: 'star',     fill: false,   size: 180, glyph: '☆', ax: 0.86,  ay: -0.46 },
     channel:    { label: 'канал',      sym: 'chev',     fill: false,   size: 150, glyph: '➤', ax: 0.66,  ay: 0.0 },
-    tool:       { label: 'инструмент', sym: 'triangle', fill: false,   size: 150, glyph: '△', ax: 0.9,   ay: 0.3 },
-    guide:      { label: 'гайд',    sym: 'asterisk', fill: false,   size: 130, glyph: '✳', ax: -0.3,  ay: -0.3 },
+    tool:       { label: 'инструмент', sym: 'triangle', fill: false,   size: 150, glyph: '△', ax: 0.92,  ay: 0.12 },
+    guide:      { label: 'гайд',       sym: 'asterisk', fill: false,   size: 130, glyph: '✳', ax: -0.34, ay: 0.32 },
     skill:      { label: 'скилл',      sym: 'circle',   fill: false,   size: 150, glyph: '○', ax: 0.06,  ay: 0.12 },
     agent:      { label: 'агент',      sym: 'circle',   fill: 'accent', size: 240, glyph: '●', ax: 0.0,  ay: 0.5 },
     output:     { label: 'задача',     sym: 'square',   fill: 'hair',  size: 150, glyph: '▢', ax: 0.2,   ay: 0.86 },
-    eval:       { label: 'проверка',   sym: 'triangle', fill: true,    size: 150, glyph: '▲', ax: 0.5,   ay: 0.7 },
+    eval:       { label: 'проверка',   sym: 'triangle', fill: true,    size: 150, glyph: '▲', ax: 0.52,  ay: 0.82 },
     automation: { label: 'рутина',     sym: 'hourglass', fill: false,  size: 140, glyph: '⧗', ax: -0.2,  ay: 0.9 },
     dashboard:  { label: 'срез',       sym: 'cross',    fill: true,    size: 170, glyph: '✚', ax: 0.86,  ay: 0.62 },
     code:       { label: 'код',        sym: 'times',    fill: false,   size: 90,  glyph: '×', ax: 0.36,  ay: -0.3 },
@@ -70,7 +74,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
   const chev = { draw(c, size) { const a = Math.sqrt(size) / 1.7; c.moveTo(-a, -a); c.lineTo(a * 0.9, 0); c.lineTo(-a, a); c.lineTo(-a * 0.35, 0); c.closePath(); } };
   const SYM = { chev, hexagon, hourglass, gate, play, diamond: d3.symbolDiamond, square: d3.symbolSquare, triangle: d3.symbolTriangle, circle: d3.symbolCircle, wye: d3.symbolWye,
     cross: d3.symbolCross, star: d3.symbolStar, times: d3.symbolTimes || d3.symbolCross, asterisk: d3.symbolAsterisk || d3.symbolStar };
-  const FOLDER_ORDER = ['', 'company', 'sources', 'meetings', 'asks', 'rules', 'people', 'audience', 'competitors', 'channels', 'tools', 'tasks', 'checks', 'routines', 'metrics', 'dashboards', 'tracks', 'classes', 'clusters', 'participants', 'guests', 'context', 'skills', 'sessions'];
+  const FOLDER_ORDER = ['', 'context', 'sources', 'meetings', 'asks', 'rules', 'people', 'tools', 'tasks', 'checks', 'routines', 'dashboards', 'guides', 'company', 'audience', 'competitors', 'channels', 'metrics', 'tracks', 'classes', 'clusters', 'participants', 'guests', 'skills', 'sessions'];
   const LANE_ORDER = ['secretary', 'dispatcher', 'researcher', 'checker'];
   const LANE_META = {
     secretary: { title: 'секретарь', skill: 'meeting-to-decisions' }, dispatcher: { title: 'постановщик', skill: 'decisions-to-tasks' },
@@ -79,7 +83,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
   const CHANNELS = [['linkedin', 'LinkedIn'], ['telegram', 'Telegram'], ['carousel', 'карусель'], ['landing', 'лендинг']];
 
   function layerOf(p) {
-    if (/^(company|sources|meetings|asks|rules|people|audience|participants|guests|competitors|channels|tools|guides|tasks|checks|routines|dashboards|metrics)\/README\.md$/.test(p)) return 'section';
+    if (/^(context|company|sources|meetings|asks|rules|people|audience|participants|guests|competitors|channels|tools|guides|tasks|checks|routines|dashboards|metrics)\/README\.md$/.test(p)) return 'section';
     if (p === 'README.md' || p === 'CLAUDE.md' || p === 'AGENTS.md') return 'hub';
     if (p === '.mcp.json') return 'tool';
     const top = p.split('/')[0];
@@ -91,7 +95,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
       outputs: 'output', evals: 'eval', dashboards: 'dashboard', guides: 'guide', roles: 'role', automations: 'automation', gates: 'gate', sessions: 'session' })[top] || 'raw';
   }
   // `type:` in frontmatter beats the folder: a course vault can keep any folder names
-  const TYPE_LAYER = { company: 'context', source: 'raw', meeting: 'source', ask: 'research', rule: 'rule', role: 'role', segment: 'segment', competitor: 'competitor',
+  const TYPE_LAYER = { context: 'context', company: 'context', source: 'raw', guide: 'guide', meeting: 'source', ask: 'research', rule: 'rule', role: 'role', segment: 'segment', competitor: 'competitor',
     channel: 'channel', tool: 'tool', task: 'output', check: 'eval', metric: 'eval', routine: 'automation', dashboard: 'dashboard', class: 'cls', track: 'track',
     cluster: 'cluster', person: 'person', participant: 'person', guest: 'guest', speaker: 'guest', hub: 'hub' };
   const layerAt = (p) => (S.files.get(p) || {}).layer || layerOf(p);
@@ -120,6 +124,8 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     if (layer === 'nucleus') title = fm.id || title.split(' ')[0];
     if (layer === 'output') title = (path.includes('/covers/') ? '3:1 ' : '') + title.split(' ').slice(0, path.includes('/landing/') ? 3 : 1).join(' ') + (path.endsWith('.html') ? ' ⧉' : '');
     if (path === '.mcp.json') title = '.mcp.json';
+    const kind = fm.kind || (layer === 'context' ? title.split(' ')[0] : '');
+    if (layer === 'context' && kind && title.startsWith(kind + ' ')) title = title.slice(kind.length + 1);
     const links = [];
     if (isMd) {
       const prose = (content || '').replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]*`/g, '');
@@ -131,7 +137,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
       while ((m = mdl.exec(prose))) { let t = m[1] || m[2]; try { t = decodeURIComponent(t); } catch { /* raw */ } if (!/^https?:/.test(t)) links.push(norm(joinPath(path, t))); }
     }
     if (path.endsWith('.html')) links.push(norm(path.replace(/\.html$/, '')));
-    return { path, layer, title, fm, links: [...new Set(links)], content };
+    return { path, layer, title, kind, fm, links: [...new Set(links)], content };
   }
 
   // ---------- store ----------
@@ -146,6 +152,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
   }
   reset();
   let META = { questions: [], answers: {}, phases: [], duration: 1 };
+  let PHASE_FILES = {};
   const now = () => performance.now();
   let dirty = true;
   const markDirty = () => { dirty = true; };
@@ -214,22 +221,24 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
   }
   const sim = d3.forceSimulation()
     .force('link', d3.forceLink().id((d) => d.id).distance((l) => (String(l.kind).startsWith('agent') ? 80 : 60)).strength(linkStrength))
-    .force('charge', d3.forceManyBody().strength((d) => (d.layer === 'ghost' ? -40 : -190)))
-    .force('x', d3.forceX((d) => anchor(d).x).strength((d) => (d.layer === 'ghost' ? 0.015 : 0.18)))
-    .force('y', d3.forceY((d) => anchor(d).y).strength((d) => (d.layer === 'ghost' ? 0.015 : 0.18)))
+    .force('charge', d3.forceManyBody().strength((d) => (d.layer === 'ghost' ? -40 : d.layer === 'context' ? -70 : -190)))
+    .force('x', d3.forceX((d) => anchor(d).x).strength((d) => (d.layer === 'ghost' ? 0.015 : d.layer === 'context' ? 0.32 : 0.18)))
+    .force('y', d3.forceY((d) => anchor(d).y).strength((d) => (d.layer === 'ghost' ? 0.015 : d.layer === 'context' ? 0.5 : 0.18)))
     .force('collide', d3.forceCollide((d) => Math.sqrt(LAYERS[d.layer].size) / 1.4 + 14))
     .alphaDecay(0.03)
     .on('tick', ticked);
   const VERTICAL = new Set(['source', 'research', 'eval', 'dashboard']);
-  const SEC_AT = { company: 'context', sources: 'raw', meetings: 'source', asks: 'research', rules: 'rule', people: 'role', audience: 'segment', competitors: 'competitor',
+  const KIND_AT = { паспорт: [-0.3, -0.42], сегмент: [0.34, -0.94], кластер: [0.34, -0.94], конкурент: [0.46, -0.72], участник: [0.46, -0.72], канал: [0.5, -0.48], гость: [0.5, -0.48] };
+  const SEC_AT = { context: 'context', company: 'context', sources: 'raw', meetings: 'source', asks: 'research', rules: 'rule', people: 'role', audience: 'segment', competitors: 'competitor',
     channels: 'channel', tools: 'tool', guides: 'guide', tasks: 'output', checks: 'eval', routines: 'automation', dashboards: 'dashboard', metrics: 'eval', participants: 'person', guests: 'guest' };
   function anchor(d) {
     const L0 = LAYERS[d.layer];
-    const L = d.layer === 'section' && d.file ? { ...LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'], ax: (LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'].ax || 0) * 0.82, ay: (LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'].ay || 0) * 0.82 } : L0;
+    const K = d.layer === 'context' && d.file && KIND_AT[d.file.kind];
+    const L = K ? { ...L0, ax: K[0], ay: K[1] } : d.layer === 'section' && d.file ? { ...LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'], ax: (LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'].ax || 0) * 0.82, ay: (LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'].ay || 0) * 0.82 } : L0;
     if (L.ax === undefined) return { x: d.x ?? W / 2, y: d.y ?? H / 2 };
     const off = d.slotN > 1 ? d.slot - (d.slotN - 1) / 2 : 0;
     const vertical = VERTICAL.has(d.layer);
-    const step = off === 0 ? 0 : vertical ? Math.min(40, (H * 0.34) / d.slotN) : Math.min(70, (W * (d.layer === 'skill' ? 0.72 : 0.42)) / d.slotN);
+    const step = off === 0 ? 0 : vertical ? Math.min(40, (H * 0.34) / d.slotN) : Math.min(70, (W * (d.layer === 'skill' ? 0.72 : K ? 0.6 : 0.42)) / d.slotN);
     return { x: W / 2 + L.ax * W * 0.45 + (vertical ? 0 : off * step), y: H / 2 + L.ay * H * 0.42 + (vertical ? off * step : 0) };
   }
   function resize() {
@@ -299,7 +308,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
       return Object.assign(n, g ? { x: g.x, y: g.y } : src ? { x: src.x + (Math.random() - 0.5) * 30, y: src.y + (Math.random() - 0.5) * 30 } : { x: a.x + (Math.random() - 0.5) * 40, y: a.y + (Math.random() - 0.5) * 40 });
     });
     nodeById.clear(); next.forEach((n) => nodeById.set(n.id, n));
-    const byLayer = d3.group(next.filter((n) => n.layer !== 'ghost'), (n) => n.layer);
+    const byLayer = d3.group(next.filter((n) => n.layer !== 'ghost'), (n) => (n.layer === 'context' && n.file && KIND_AT[n.file.kind] ? `context:${n.file.kind}` : n.layer));
     for (const arr of byLayer.values()) arr.sort((a, b) => a.id.localeCompare(b.id)).forEach((n, i) => { n.slot = i; n.slotN = arr.length; });
 
     linkSel = gLinks.selectAll('line').data(links, (l) => `${l.source.id || l.source}→${l.target.id || l.target}`)
@@ -320,7 +329,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     const dense = next.length > 70;
     svg.classed('dense', dense);
     nodeSel.attr('class', (d) => `node ${d.layer === 'ghost' ? 'ghost' : ''} ${d.layer === 'agent' ? 'agent' : ''} ${hiddenLayers.has(d.layer) ? 'off' : ''} L-${d.layer}`);
-    nodeSel.classed('sel', (d) => d.id === SEL);
+    nodeSel.classed('sel', (d) => d.id === SEL).classed('fresh', (d) => S.fresh.has(d.id));
     linkSel.classed('off', (l) => hiddenLayers.has((nodeById.get(l.source.id || l.source) || {}).layer) || hiddenLayers.has((nodeById.get(l.target.id || l.target) || {}).layer));
     nodeSel.select('path').attr('d', (d) => d3.symbol(SYM[LAYERS[d.layer].sym], LAYERS[d.layer].size)())
       .attr('fill', (d) => { const f = LAYERS[d.layer].fill; return f === true ? '#0a0a0a' : f === 'accent' ? (d.running ? '#d7261e' : '#0a0a0a') : f === 'hair' ? '#e6e6e6' : '#fff'; })
@@ -354,6 +363,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
   }
   function highlight() {
     if (!nodeSel) return;
+    svg.classed('hovering', !!hoverId);
     if (!hoverId) { nodeSel.classed('dim', false); linkSel.classed('dim', false).classed('hot', false); return; }
     const nb = new Set([hoverId]);
     linkSel.each((l) => { if (l.source.id === hoverId) nb.add(l.target.id); if (l.target.id === hoverId) nb.add(l.source.id); });
@@ -440,8 +450,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     }).join('');
     document.getElementById('qaCount').textContent = `${partial ? partial.i : shown}/${qs2.length}`;
     document.getElementById('anketaP').classList.toggle('compact', !!S.phase && !['p00', 'p01'].includes(S.phase));
-    const lvl = (META.phases.find((p) => p.id === S.phase) || {}).level || (S.phase === 'done' ? 3 : 1);
-    document.body.classList.toggle('nolanes', MODE === 'replay' && lvl < 3);
+    document.body.classList.toggle('nolanes', MODE === 'replay' && !Object.keys(S.lanes || {}).length);
   }
 
   function renderLanes() {
@@ -471,13 +480,14 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
       const nk = norm(bare((o.fm.nucleus || '').replace(/\[\[|\]\]/g, '')));
       cell.set(`${nk}|${(o.fm.channel || '').toLowerCase()}`, true); covered.add(nk);
     }
-    const course = by('cls').length + by('person').length + by('guest').length > 0;
+    const kind = (k) => files.filter((f) => f.layer === 'context' && f.kind === k).length;
+    const course = kind('участник') + kind('гость') + by('person').length > 0;
     const m = course ? {
-      'файлы': files.length, 'связи': linkSel ? linkSel.size() : 0, 'классы': by('cls').length, 'треки': by('track').length,
-      'участники': by('person').length, 'гости': by('guest').length, 'кластеры': by('cluster').length, 'встречи': by('source').length,
+      'файлы': files.length, 'связи': linkSel ? linkSel.size() : 0, 'классы': by('source').length + by('cls').length, 'участники': kind('участник') + by('person').length,
+      'гости': kind('гость') + by('guest').length, 'кластеры': kind('кластер') + by('cluster').length, 'правила': by('rule').length, 'задачи': by('output').length,
     } : {
       'файлы': files.length, 'связи': linkSel ? linkSel.size() : 0, 'встречи': by('source').length, 'правила': by('rule').length,
-      'гости': by('segment').length, 'конкуренты': by('competitor').length, 'каналы': by('channel').length, 'задачи': by('output').length,
+      'сегменты': kind('сегмент') + by('segment').length, 'конкуренты': kind('конкурент') + by('competitor').length, 'каналы': kind('канал') + by('channel').length, 'задачи': by('output').length,
     };
     document.getElementById('metrics').innerHTML = Object.entries(m).map(([k, v]) => `<div class="m ${lastMetrics[k] !== undefined && lastMetrics[k] !== v ? 'up' : ''}"><b>${v}</b><span>${k}</span></div>`).join('');
     lastMetrics = m;
@@ -498,7 +508,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
   function renderTools() {
     const el = document.getElementById('tools');
     const cards = [...S.files.values()].filter((f) => f.layer === 'tool' && f.path.endsWith('.md')).sort((a, b) => a.path.localeCompare(b.path));
-    if (!cards.length) { el.innerHTML = '<div class="cap">инструменты появятся в фазе 04 · все инструкции: <a href="access.html">About</a></div>'; return; }
+    if (!cards.length) { el.innerHTML = '<div class="cap">инструменты появятся на шаге 06</div>'; return; }
     const idx = resolveIndex();
     const skillsOf = (p) => [...S.files.values()].filter((g) => g.layer === 'skill' && g.links.some((t) => idx.get(t) === p)).map((g) => g.path);
     el.innerHTML = cards.map((f) => {
@@ -523,19 +533,43 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     if (box.dataset.sig !== sig) {
       box.dataset.sig = sig;
       box.style.gridTemplateColumns = `repeat(${META.phases.length || 1}, minmax(0,1fr))`;
-      box.innerHTML = META.phases.map((p, i) => `<div class="ph" data-i="${i}" title="${esc(p.title)} · клик – к карточке фазы">${p.id.slice(1)} · ${esc(p.title)}</div>`).join('');
+      box.innerHTML = META.phases.map((p, i) => `<div class="ph" data-i="${i}"><i>${p.id.slice(1)}</i><span>${esc(p.title)}</span></div>`).join('');
     }
     [...box.children].forEach((el, i) => { const cls = i < cur || S.phase === 'done' ? 'ph done' : i === cur ? 'ph now' : 'ph'; if (el.className !== cls) el.className = cls; });
     const ph = META.phases[cur];
-    document.getElementById('phaseLabel').textContent = S.phase === 'done' ? 'готово · харнесс собран' : ph ? `${ph.id.slice(1)} · ${ph.title}` : '00 · пустая папка';
+    document.getElementById('phaseLabel').textContent = S.phase === 'done' ? 'готово · папка собрана' : ph ? `шаг ${ph.id.slice(1)} · ${ph.title}` : 'шаг 00 · пустая папка';
     document.querySelector('#bar i').style.width = `${Math.min(100, progress * 100)}%`;
   }
+  // a preview of every step: what it is, who does it, what lands in the folder
+  const phPrev = document.getElementById('phPrev');
+  document.getElementById('phases').addEventListener('mouseover', (e) => {
+    const el = e.target.closest('.ph'); if (!el) return;
+    const i = Number(el.dataset.i), ph = META.phases[i]; if (!ph) return;
+    const cur = META.phases.findIndex((p) => p.id === S.phase);
+    const files = [...(PHASE_FILES[ph.id] || [])];
+    const by = {}; files.forEach((p) => { const d = p.includes('/') ? p.split('/')[0] + '/' : './'; by[d] = (by[d] || 0) + 1; });
+    const h = ph.how || {};
+    const lead = ph.stop ? String(ph.stop.lead).replace(/`/g, '') : '';
+    phPrev.innerHTML = `<div class="pp-h"><i>шаг ${ph.id.slice(1)}</i><b>${esc(ph.stop ? ph.stop.title : ph.title)}</b></div>${lead ? `<p>${esc(lead)}</p>` : ''}` +
+      (h.who ? `<dl class="how"><dt>кто</dt><dd>${esc(h.who)}</dd><dt>агент</dt><dd>${esc(h.agent)}</dd><dt>время</dt><dd>${esc(h.time)}</dd></dl>` : '') +
+      (files.length ? `<div class="pp-f"><b>+${files.length}</b> в папке · ${Object.entries(by).map(([d, n]) => `${esc(d)} ${n}`).join(' · ')}</div>` : '') +
+      `<div class="pp-k">${S.phase === 'done' || i < cur ? '✓ пройден · клик – вернуться к шагу' : i === cur ? 'идёт сейчас' : 'клик – перейти к шагу'}</div>`;
+    phPrev.hidden = false;
+    const r = el.getBoundingClientRect(), w = phPrev.offsetWidth;
+    phPrev.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2))}px`;
+    phPrev.style.bottom = `${innerHeight - r.top + 8}px`;
+  });
+  document.getElementById('phases').addEventListener('mouseleave', () => { phPrev.hidden = true; });
   let SECTIONS = {};
   fetch(SCENARIO_KIT ? 'local/sections-slp.json' : 'sections.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : {})).then((j) => { SECTIONS = j; markDirty(); }).catch(() => {});
   const RQ = ['просто', 'средне', 'сложно'];
   function sectionCard(id, s) {
-    return `<div class="sc"><img src="assets/metaphors/${s.img || id}.webp" alt=""><div class="sc-h"><b>${esc(s.title)}</b>${s.metaphor ? `<span>${esc(s.metaphor)}</span>` : ""}</div></div>
-      <p class="sc-w">${esc(s.what)}</p><ol class="rq">${s.requests.map((r, i) => `<li style="animation-delay:${0.25 + i * 0.9}s"><i>${i + 1} · ${RQ[i]}</i><span>${esc(r)}</span></li>`).join('')}</ol>`;
+    const L = LAYERS[SEC_AT[id]] || LAYERS.section;
+    return `<div class="sc"><span class="sc-g">${L.glyph}</span><div><b>${esc(s.title)}</b><code>${esc(id)}/</code><p>${esc(s.what)}</p></div></div>
+      <ol class="rq">${s.requests.map((r, i) => `<li style="animation-delay:${0.2 + i * 0.7}s"><i>${RQ[i]}</i><span>${esc(r)}</span></li>`).join('')}</ol>`;
+  }
+  function howHtml(h) {
+    return h ? `<dl class="how"><dt>кто</dt><dd>${esc(h.who)}</dd><dt>агент</dt><dd>${esc(h.agent)}</dd><dt>берём</dt><dd>${esc(h.takes)}</dd><dt>кладём</dt><dd>${esc(h.puts)}</dd><dt>время</dt><dd>${esc(h.time)}</dd></dl>` : '';
   }
   function renderNarr() {
     document.getElementById('narrText').textContent = S.narr || '–';
@@ -546,21 +580,26 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
       nf.hidden = !f;
       if (f) { nf.dataset.p = f.path; nf.innerHTML = `<span class="g">${LAYERS[f.layer].glyph}</span><b>${esc(f.path)}</b><span class="nd">${esc(f.fm.description || LAYERS[f.layer].label)}</span>`; }
     }
-    const course = [...S.files.values()].some((x) => x.layer === 'cls' || x.layer === 'person');
-    const ph = MODE !== 'replay' ? { level: course ? 'курс' : 'папка', ask: course
-      ? 'Кого из guests/ позвать гостем на класс 05 и почему? Учти кластеры участников и что им откликнется. Ответь ссылками на карточки.'
-      : 'Прочитай AGENTS.md. Что в этой папке уже есть по уровням 1–3 и чего не хватает? Список со ссылками на файлы, ничего не меняй.' }
+    const course = !!SCENARIO_KIT || [...S.files.values()].some((x) => x.layer === 'cls' || x.layer === 'person' || x.kind === 'участник');
+    const ph = MODE !== 'replay' ? { live: course ? 'папка группы' : 'своя папка', ask: course
+      ? 'Кого из карточек {context} гость позвать на следующий класс и почему? Учти кластеры участников и что им откликнется. Ответь ссылками на карточки, ничего не меняй.'
+      : 'Прочитай AGENTS.md. Что в этой папке уже есть по двенадцати разделам и чего не хватает? Список со ссылками на файлы, ничего не меняй.' }
       : META.phases.find((p) => p.id === S.phase) || (S.phase === 'done' ? META.phases[META.phases.length - 1] : null);
     const askEl = document.getElementById('ask');
     if (askEl) {
       const secId = S.lastFile && S.lastFile.includes('/') ? S.lastFile.split('/')[0] : null;
       const sec = secId && SECTIONS[secId];
-      const key = sec ? `s:${secId}` : `p:${ph ? ph.ask : ''}`;
+      const key = `${ph ? ph.id || ph.live : ''}|${secId || ''}`;
       if (askEl.dataset.key !== key) {
         askEl.dataset.key = key;
-        askEl.innerHTML = sec ? sectionCard(secId, sec) : ph && ph.ask ? `<p class="ak-q">${esc(ph.ask)}</p>` : '<p class="cap">запросы появятся вместе с первым разделом</p>';
+        askEl.innerHTML = (ph && ph.id ? `<div class="stp"><i>${ph.id.slice(1)}</i><b>${esc(ph.stop ? ph.stop.title : ph.title)}</b></div>` : '') +
+          (ph ? howHtml(ph.how) : '') +
+          (ph && ph.ask ? `<div class="ak"><span class="cap">запрос агенту на этом шаге</span><p class="ak-q">${esc(ph.ask)}</p></div>` : '') +
+          (sec ? `<div class="secb"><span class="cap">раздел папки · запросы от простого к сложному</span>${sectionCard(secId, sec)}</div>` : '') ||
+          '<p class="cap">шаг появится вместе с историей</p>';
       }
-      document.getElementById('askLevel').textContent = sec ? `уровень ${sec.level}` : ph ? (typeof ph.level === 'number' ? `уровень ${ph.level}` : ph.level) : '';
+      const n = META.phases.length, i = ph && ph.id ? META.phases.findIndex((p) => p.id === ph.id) : -1;
+      document.getElementById('askLevel').textContent = ph && ph.live ? ph.live : i >= 0 ? `${i + 1} из ${n}` : '';
     }
   }
   document.getElementById('narrFile').addEventListener('click', (e) => { const p = e.currentTarget.dataset.p; if (p) openPreview(p); });
@@ -851,7 +890,9 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     const ph = META.phases[i];
     if (!ph || !ph.stop) return false;
     const idx = resolveIndex();
-    $('stNum').textContent = `фаза ${id.slice(1)} · ${ph.title}`;
+    $('stNum').textContent = `шаг ${id.slice(1)} · ${ph.title}`;
+    $('stHow').hidden = !ph.how;
+    if (ph.how) $('stHow').innerHTML = howHtml(ph.how).replace(/^<dl class="how">|<\/dl>$/g, '');
     $('stStep').textContent = `${i + 1} / ${META.phases.length}`;
     $('stTitle').textContent = ph.stop.title;
     $('stLead').innerHTML = mdInline(ph.stop.lead, idx);
@@ -861,11 +902,14 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     $('stHalt').hidden = !halt;
     if (halt) $('stHalt').innerHTML = `<b>точка остановки</b><span>${mdInline(halt, idx)}</span>`;
     $('stAsk').hidden = !ph.ask;
-    if (ph.ask) $('stAsk').innerHTML = `<b>запрос агенту</b><p>${esc(ph.ask)}</p>`;
+    if (ph.ask) $('stAsk').innerHTML = `<b>запрос агенту на этом шаге</b><p>${esc(ph.ask)}</p>`;
     $('stTree').innerHTML = stopTree(new Set(shown));
-    $('stFiles').innerHTML = shown.length ? `<b>${id === 'p03' ? 'переименовано' : 'появилось'} · ${shown.length} файлов</b><div class="chips">${shown.map((p) => `<a data-p="${esc(p)}" title="${esc(p)}">${LAYERS[layerAt(p)].glyph} ${esc(bare(base(p)))}</a>`).join('')}</div>` : '';
+    $('stFiles').innerHTML = shown.length ? `<b>${id === 'p02' ? 'переименовано' : 'появилось в папке'} · ${shown.length}</b><div class="chips">${shown.map((p) => `<a data-p="${esc(p)}" title="${esc(p)}">${LAYERS[layerAt(p)].glyph} ${esc(bare(base(p)))}</a>`).join('')}</div>` : '';
     const nxt = META.phases[i + 1];
     $('stGo').textContent = nxt ? `дальше: ${nxt.title} →` : 'к финалу →';
+    $('stOff').textContent = nxt ? 'остановиться здесь' : 'без карточек';
+    $('stOff').title = nxt ? 'закрыть карточку и остаться на этом шаге' : 'смотреть без карточек';
+    $('stOff').onclick = nxt ? () => closeStop(false) : () => { setStops(false); closeStop(true); };
     stopOpen = id; onStopGo = go;
     $('stop').hidden = false; $('stGo').focus();
     return true;
@@ -903,7 +947,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
   function apply(e, animate) {
     switch (e.type) {
       case 'phase': S.phase = e.id; break;
-      case 'narrate': S.narr = e.text; S.narrTag = e.lane ? 'агент' : `фаза ${(S.phase || '').slice(1)}`; break;
+      case 'narrate': S.narr = e.text; S.narrTag = e.lane ? 'агент' : `шаг ${(S.phase || '').slice(1)}`; break;
       case 'answers': S.answersTyping = { at: e.at, dwell: e.dwell }; break;
       case 'file': upsertFile(e.path, e.content, e.lane, animate); break;
       case 'rename': renameFile(e.from, e.to, e.content, animate); break;
@@ -921,6 +965,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     { let ph = null; for (const e of sc.events) { if (e.type === 'phase') ph = e.id; if (e.type === 'file' || e.type === 'rename') { const p = e.type === 'file' ? finalPath(e.path) : e.to; if (!FUTURE.has(p)) FUTURE.set(p, { at: e.at, phase: ph }); FUTURE.get(p).content = e.content ?? FUTURE.get(p).content; } } }
     const phaseFiles = {};
     { let cur = null; for (const e of sc.events) { if (e.type === 'phase') cur = e.id; if (cur && (e.type === 'file' || e.type === 'rename')) (phaseFiles[cur] ||= new Set()).add(e.type === 'file' ? e.path : e.to); } }
+    PHASE_FILES = phaseFiles;
     const R = { t: 0, i: 0, playing: qs.get('autoplay') !== '0', speed: Number(qs.get('speed') || 1), last: now() };
     const btnPlay = document.getElementById('play');
     const btnSpeed = document.getElementById('speed');
@@ -1017,6 +1062,8 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
       const sc = await fetch(SCENARIO_FILE, { cache: 'no-store' }).then((r) => r.json());
       META = { questions: sc.questions, answers: {}, phases: sc.phases, duration: sc.duration };
     for (const e of sc.events) if (e.type === 'rename') FINAL.set(e.from, e.to);
+    { let cur = null; for (const e of sc.events) { if (e.type === 'phase') cur = e.id; if (cur && (e.type === 'file' || e.type === 'rename')) (PHASE_FILES[cur] ||= new Set()).add(e.type === 'file' ? e.path : e.to); } }
+    renderPhases(0);
     } catch { /* live works without scenario */ }
     // the local server lives only on localhost; on the site the page never asks for /api
     if (!TEAM && LOCALHOST) { try { SESSION = await fetch('/api/session').then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }); document.getElementById('consoleHost').textContent = SESSION.serverHost; folderBar(); } catch { SERVERLESS = true; } }
@@ -1025,10 +1072,11 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     consolePane();
     if (SERVERLESS) await connectCard();
     if (introWanted) {
-      $('inTitle').textContent = TEAM ? 'Team: рабочая папка спринта из git' : SERVERLESS ? 'Local: подключи свою папку' : 'Local: харнесс на этом компьютере';
-      if (SERVERLESS && !TEAM) $('inPoints').innerHTML = '<li>Local – локальное хранение: папка лежит на твоём компьютере. на сайте её можно выбрать в браузере или перетащить из Finder: граф, поиск, правка файлов</li><li>агенты, сессии, откат, Obsidian и коммиты – в полном режиме: <code>bin/open.sh</code> на своём компьютере, команды на следующем экране</li><li>Demo показывает учебную сборку; реальные запуски выполняются в Local через локальный сервер</li>';
+      $('inTitle').textContent = TEAM ? 'рабочая папка из git' : SERVERLESS ? 'своя папка: подключи её' : 'своя папка на этом компьютере';
+      $('inLead').textContent = 'своя папка – обычная папка на твоём компьютере. граф читает её файлы и меняется от любой правки: Obsidian, редактор, агент. на сайт папка не уходит.';
+      if (SERVERLESS && !TEAM) $('inPoints').innerHTML = '<li>на сайте папку можно выбрать в браузере или перетащить из Finder: граф, поиск, правка файлов</li><li>агенты, коммиты, откат и Obsidian – в полном режиме: git clone и <code>bin/new.sh</code>, команды на следующем экране</li><li>две готовые папки: Лунная каменка – образец с GitHub; SLP\'26 – папка группы, только у ведущего</li>';
       if (TEAM) $('inPoints').innerHTML = '<li>граф собран из репозитория ai-mindset-org/marketing-harness-sprint: сервер команды проверяет его раз в 5 минут и публикует после каждого push</li><li>сессии агентов лежат в папке sessions/: кто запускал, что сделал, какие файлы тронул; клик по коммиту – что в нём</li><li>в строке папки – zip текущей папки и команда клонирования; правка и агенты – у себя: клон, bin/open.sh, коммит, push</li><li>клик по узлу открывает файл; ⌘K – поиск; пробел – заморозить картинку</li>';
-      if (SESSION) $('inPoints').innerHTML = '<li>каждая фигура – файл папки; граф меняется от любой правки: Obsidian, редактор, агент</li><li>панель 05 – роли агентов: ▶ запускает роль, клик по статусу открывает сессию вживую: шаги, токены, файлы</li><li>клик по коммиту – что в нём, «откатить», «форк с этого места»; у файла – «история» и возврат старой версии</li><li><kbd>⌘K</kbd> – поиск; пробел – заморозить картинку; Esc закрывает верхнее окно</li>';
+      if (SESSION) $('inPoints').innerHTML = '<li>каждая фигура – файл папки; граф меняется от любой правки: Obsidian, редактор, агент</li><li>панель «агенты» – роли: ▶ запускает роль, клик по статусу открывает сессию вживую; в консоли – готовые запросы, в том числе проверка git и приватных данных</li><li>шаги внизу – как эта папка росла: клик ведёт в историю шага</li><li>клик по коммиту – что в нём, «откатить», «форк с этого места»; у файла – «история» и возврат старой версии</li><li><kbd>⌘K</kbd> – поиск; пробел – заморозить картинку; Esc закрывает верхнее окно</li>';
       $('inGo').textContent = 'открыть граф →'; $('inEnd').hidden = true;
       $('intro').hidden = false; $('inGo').focus();
       $('inGo').onclick = () => introClose();
@@ -1074,12 +1122,12 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
         const last = (h.narration || []).slice(-1)[0];
         const runLive = S.runs.find((r) => r.status === 'running');
         const text = runLive ? `${runWho(runLive)} · ${runLive.runner} работает: ${runLive.last || runLive.prompt.slice(0, 80)}` : last?.text;
-        if (text && text !== S.narr) { S.narr = text; S.narrTag = runLive ? 'агент' : (!h.phase || h.phase === 'done') ? 'готово' : `фаза ${h.phase.slice(1)}`; markDirty(); }
+        if (text && text !== S.narr) { S.narr = text; S.narrTag = runLive ? 'агент' : (!h.phase || h.phase === 'done') ? 'готово' : `шаг ${h.phase.slice(1)}`; markDirty(); }
         S.answersShown = h.answersShown ?? META.questions.length;
         const cur = META.phases.findIndex((p) => p.id === S.phase);
         const progress = S.phase === 'done' || !h.phase ? 1 : cur < 0 ? 0 : (cur + 0.5) / META.phases.length;
         if (!h.phase) S.phase = 'done';
-        document.getElementById('clock').textContent = TEAM ? `Team · ${st.name} · ${st.head || ''} · ${String(st.exported || '').slice(11, 16)} UTC` : FSA ? `Local · папка в браузере · ${st.name}` : `Local · ${st.name} · ${S.commits.length} коммитов`;
+        document.getElementById('clock').textContent = TEAM ? `Team · ${st.name} · ${st.head || ''} · ${String(st.exported || '').slice(11, 16)} UTC` : FSA ? `своя папка в браузере · ${st.name}` : `своя папка · ${st.name} · ${S.commits.length} коммитов`;
         if (TEAM || FSA) setBrand(st.name);
         renderAll(progress);
       } catch (err) {
@@ -1272,7 +1320,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
       <ul class="plain"><li>вход через Леночку, как в Техничке: тот же сервис входа подключается к этому сайту, логин по Telegram, допуск по списку команды;</li>
       <li>исполнение в контуре Сотника на сервере команды, отдельный клон рабочей папки, лимиты: один запуск на человека, 15 минут;</li>
       <li>результат – коммит <code>agent(sotnik-site)</code> в репозиторий спринта и сессия в <code>sessions/</code>, Team покажет их через 5 минут.</li></ul>
-      <p class="cap">кнопка «войти через Леночку» появится здесь, когда Саша включит сервис. до этого – Local на своём компьютере:</p>${local}${runners}`
+      <p class="cap">кнопка «войти через Леночку» появится здесь, когда Саша включит сервис. до этого – своя папка на своём компьютере:</p>${local}${runners}`
       : `<b>агенты запускаются на твоём компьютере</b>
       <p>эта страница открыта ${FSA ? 'с папкой в браузере' : 'с сайта'}: у неё нет доступа к терминалу и ключам. консоль работает в полном режиме:</p>${local}${runners}`;
   }
@@ -1302,11 +1350,11 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
       if (S.files.has(p)) continue;
       const name = base(p).toLowerCase(), k = (x.content || '').toLowerCase().indexOf(t);
       const sc2 = name.includes(t) ? 50 : k >= 0 ? 25 : 0;
-      if (sc2) out.push({ kind: 'future', p, at: x.at, glyph: LAYERS[layerOf(p)].glyph, label: bare(base(p)), sub: `появится в фазе ${String(x.phase || '').slice(1)}`, hit: k >= 0 && !name.includes(t) ? x.content.slice(Math.max(0, k - 30), k + 70).replace(/\s+/g, ' ') : '', score: sc2 });
+      if (sc2) out.push({ kind: 'future', p, at: x.at, glyph: LAYERS[layerOf(p)].glyph, label: bare(base(p)), sub: `появится на шаге ${String(x.phase || '').slice(1)}`, hit: k >= 0 && !name.includes(t) ? x.content.slice(Math.max(0, k - 30), k + 70).replace(/\s+/g, ' ') : '', score: sc2 });
     }
     META.phases.forEach((ph, i) => {
-      const hay = `${ph.id} фаза ${ph.id.slice(1)} ${ph.title} ${ph.stop ? ph.stop.title + ' ' + ph.stop.lead : ''}`.toLowerCase();
-      if (!t || hay.includes(t)) out.push({ kind: 'phase', i, glyph: '▸', label: `фаза ${ph.id.slice(1)} · ${ph.title}`, sub: ph.stop ? ph.stop.title : '', hit: '', score: t ? 70 : 0.5 });
+      const hay = `${ph.id} шаг фаза ${ph.id.slice(1)} ${ph.title} ${ph.stop ? ph.stop.title + ' ' + ph.stop.lead : ''}`.toLowerCase();
+      if (!t || hay.includes(t)) out.push({ kind: 'phase', i, glyph: '▸', label: `шаг ${ph.id.slice(1)} · ${ph.title}`, sub: ph.stop ? ph.stop.title : '', hit: '', score: t ? 70 : 0.5 });
     });
     QS.list = out.sort((a, b) => b.score - a.score || a.label.localeCompare(b.label)).slice(0, 40);
     QS.i = 0;
@@ -1336,25 +1384,6 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     else if (r.kind === 'future' && seekTo) { seekTo(r.at + 60); openPreview(r.p); }
     else if (jumpToPhase) jumpToPhase(r.i);
   }
-  function secsOpen() {
-    const order = Object.entries(SECTIONS).sort((a, b) => a[1].level - b[1].level);
-    $('secGrid').innerHTML = [1, 2, 3].map((lv) => `<h4>уровень ${lv} · ${['база', 'правила и карточки', 'агенты'][lv - 1]}</h4><div class="sg-row">` + order.filter(([, s]) => s.level === lv).map(([id, s]) => {
-      const here = S.files.has(`${id}/README.md`), fut = FUTURE.get(`${id}/README.md`);
-      const state = here ? 'есть в папке' : fut ? `появится в фазе ${String(fut.phase || '').slice(1)}` : MODE === 'replay' ? '' : 'нет в этой папке';
-      return `<button type="button" class="sgc${here ? '' : ' later'}" data-s="${id}"><img src="assets/metaphors/${s.img || id}.webp" alt="" loading="lazy"><b>${esc(s.title)}</b><small>${esc(s.what)}</small><ol>${s.requests.map((r, i) => `<li><i>${i + 1}</i>${esc(r)}</li>`).join('')}</ol><em>${esc(state)}</em></button>`;
-    }).join('') + '</div>').join('');
-    $('secs').hidden = false;
-  }
-  $('secsBtn').onclick = secsOpen;
-  $('secsClose').onclick = () => { $('secs').hidden = true; };
-  $('secs').addEventListener('click', (e) => {
-    if (e.target.id === 'secs') { $('secs').hidden = true; return; }
-    const b = e.target.closest('.sgc'); if (!b) return;
-    const p = `${b.dataset.s}/README.md`, fut = FUTURE.get(p);
-    $('secs').hidden = true;
-    if (!S.files.has(p) && fut && seekTo) seekTo(fut.at + 60);
-    if (S.files.has(p) || fut) openPreview(p);
-  });
   function searchOpen() { $('search').hidden = false; $('q').value = ''; searchRun(''); $('q').focus(); }
   function searchClose() { $('search').hidden = true; }
   $('searchBtn').onclick = searchOpen;
@@ -1363,7 +1392,6 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     if (e.key === 'ArrowDown') { e.preventDefault(); QS.i = Math.min(QS.list.length - 1, QS.i + 1); searchPaint(); }
     if (e.key === 'ArrowUp') { e.preventDefault(); QS.i = Math.max(0, QS.i - 1); searchPaint(); }
     if (e.key === 'Enter') { e.preventDefault(); searchPick(QS.i); }
-    if (e.key === 'Escape' && !$('secs').hidden) { $('secs').hidden = true; return; }
     if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); searchClose(); }
   });
   $('qres').addEventListener('click', (e) => { const li = e.target.closest('li[data-k]'); if (li) searchPick(Number(li.dataset.k)); });
@@ -1403,7 +1431,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
   function introClose(go) {
     $('intro').hidden = true;
     if (go) go();
-    else if (MODE === 'replay' && !S.narr) { S.narr = 'пробел или ▶ – запустить сборку · End – сразу финал · клик по фазе внизу – её карточка'; S.narrTag = 'старт'; markDirty(); }
+    else if (MODE === 'replay' && !S.narr) { S.narr = 'пробел или ▶ – запустить историю · End – сразу финал · наведи на шаг внизу – превью, клик – его карточка'; S.narrTag = 'старт'; markDirty(); }
   }
 
   // ---------- live folder bar: local path and its git remote ----------
@@ -1412,7 +1440,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     $('fbPath').textContent = SESSION.dir.replace(/^\/Users\/[^/]+/, '~');
     $('fbPath').title = SESSION.dir;
     const g = SESSION.git || {};
-    $('fbGit').innerHTML = g.remote ? `git: ${esc(g.branch || 'main')} → <a href="${esc(g.remote)}" target="_blank" rel="noopener">${esc(g.remote.replace(/^https:\/\/github\.com\//, ''))} ↗</a>` : [...S.files.values()].some((x) => x.layer === 'person') ? `git: ${esc(g.branch || '–')} · только локально: в папке люди, на GitHub её не кладём` : `git: ${esc(g.branch || '–')} · только локально · свой GitHub: <code>gh repo create &lt;имя&gt; --private --source . --push</code>`;
+    $('fbGit').innerHTML = g.remote ? `git: ${esc(g.branch || 'main')} → <a href="${esc(g.remote)}" target="_blank" rel="noopener">${esc(g.remote.replace(/^https:\/\/github\.com\//, ''))} ↗</a>` : (SCENARIO_KIT || [...S.files.values()].some((x) => x.layer === 'person' || x.kind === 'участник')) ? `git: ${esc(g.branch || '–')} · только на этом компьютере: в папке люди, удалённого репозитория нет и не будет` : `git: ${esc(g.branch || '–')} · только локально · свой GitHub: <code>gh repo create &lt;имя&gt; --private --source . --push</code>`;
   }
   $('openFinder').onclick = () => openIn('finder', '');
   let SESSION_T = null;
@@ -1445,7 +1473,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
   const runWho = (r) => [LANE_META[r.role] && LANE_META[r.role].title, r.skill].filter(Boolean).join(' · ') || String(r.prompt || '').replace(/\s+/g, ' ').slice(0, 44) || r.id;
   function setBrand(name) {
     const h = document.querySelector('.brand h1'); if (h && name) h.textContent = `SLP harness · ${name}`;
-    const p = document.querySelector('.brand p'); if (p && name) p.textContent = 'папка на этом компьютере · фазы внизу – как она росла';
+    const p = document.querySelector('.brand p'); if (p && name) p.textContent = SCENARIO_KIT ? 'папка группы · только на этом компьютере · внизу шаги, как она росла' : 'своя папка на этом компьютере · внизу шаги, как она росла';
   }
 
   async function launch(prompt, role) {
@@ -1508,7 +1536,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
       }),
     ].sort((a, b) => b.t - a.t);
     $('sessions').innerHTML = rows.length ? `<div class="cap">${rows.length} · ${SESSION ? 'запуски этого компьютера и папка sessions/' : 'из папки sessions/'}</div>${rows.map((x) => x.html).join('')}`
-      : `<div class="cap">${MODE === 'replay' ? 'Demo показывает учебную сборку без запуска AI. Реальные сессии создаются в Local через локальный сервер' : SESSION ? 'сессий пока нет: запусти роль в панели 05 или задачу в консоли' : 'Local в браузере открывает файлы и сохраненные сессии. Для нового запуска распакуй ZIP и запусти bin/open.sh со своей папкой (Guide → Local).' }</div>`;
+      : `<div class="cap">${MODE === 'replay' ? 'история показывает учебную сборку без запуска AI. реальные сессии – в режиме «своя папка» через локальный сервер' : SESSION ? 'сессий пока нет: запусти роль в панели 05 или задачу в консоли' : 'Local в браузере открывает файлы и сохраненные сессии. Для нового запуска распакуй ZIP и запусти bin/open.sh со своей папкой (Guide → Local).' }</div>`;
   }
   document.addEventListener('click', (e) => {
     const el = e.target.closest('[data-run]'); if (!el || el.closest('#lanes')) return;
@@ -1586,7 +1614,7 @@ const SCENARIO_FILE = SCENARIO_BASE + (SCENARIO_LEVEL === '1' || SCENARIO_LEVEL 
     $('pvPath').textContent = `${c.who || '–'}${c.date ? ` · ${new Date(c.date).toLocaleString('ru', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}` : ''} · ${files.length} файлов`;
     $('pvMd').innerHTML = `<div class="card"><p class="msg">${esc(c.msg || '')}</p>${c.body ? `<p class="cap">${esc(c.body)}</p>` : ''}
         <div class="acts">${SESSION ? `<button type="button" class="danger" data-act="revert" data-h="${esc(c.hash)}">откатить</button><button type="button" data-act="forkat" data-h="${esc(c.hash)}">форк с этого коммита</button>` : ''}${c.diff ? '<button type="button" data-act="diff">изменения</button>' : ''}${sess ? `<button type="button" data-act="file" data-p="${esc(sess.path)}">сессия</button>` : ''}</div>
-        ${SESSION ? '' : '<p class="cap">откат и форк – в Local: bin/open.sh у себя, там клик по этому же коммиту</p>'}</div>
+        ${SESSION ? '' : '<p class="cap">откат и форк – в режиме «своя папка»: bin/open.sh у себя, там клик по этому же коммиту</p>'}</div>
       <h2>файлы · ${files.length}${c.more ? ` (+${c.more})` : ''}</h2>
       <ul class="flist">${files.map((f) => `<li><b class="st-${esc(f.st)}">${ST_G[f.st] || esc(f.st)}</b>${S.files.has(f.path) ? `<a data-p="${esc(f.path)}">${esc(f.path)}</a>` : `<span>${esc(f.path)}</span>`}</li>`).join('')}</ul>
       ${c.diff ? `<div class="diff" hidden>${diffHtml(c.diff)}${c.cut ? '<p class="cap">изменения обрезаны: полностью – git show в терминале</p>' : ''}</div>` : ''}

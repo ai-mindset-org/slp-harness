@@ -1,6 +1,6 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="карта конкурентов – 16 бань Москвы на карте, поиск, фильтры, расстояние от нас"><title>Карта конкурентов · {{company}}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>/* required styles */
 
 .leaflet-pane,
@@ -663,57 +663,81 @@ svg.leaflet-image-layer.leaflet-interactive path {
 		}
 	}
 </style><style>
-:root{--bg:#fff;--ink:#0a0a0a;--muted:#8a8a8a;--hair:#e6e6e6;--paper:#f6f6f4;--acc:#ee5a24;--mono:"JetBrains Mono",ui-monospace,monospace;--sans:Inter,system-ui,sans-serif}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e0e0e;--ink:#f2f2f2;--muted:#9a9a9a;--hair:#2a2a2a;--paper:#171717}}
+:root{--bg:#fff;--ink:#0a0a0a;--ink2:#3a3a3a;--muted:#8a8a8a;--hair:#e7e7e5;--paper:#f6f6f4;--acc:#d7261e;
+  --mono:"JetBrains Mono",ui-monospace,monospace;--sans:Inter,system-ui,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e0e0e;--ink:#f2f2f2;--ink2:#cfcfcf;--muted:#8f8f8f;--hair:#262626;--paper:#161616}}
+:root[data-theme="dark"]{--bg:#0e0e0e;--ink:#f2f2f2;--ink2:#cfcfcf;--muted:#8f8f8f;--hair:#262626;--paper:#161616}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
-body{padding:20px 22px}
-.k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-h1{font-size:28px;font-weight:800;letter-spacing:-.015em;margin:4px 0 6px}
-.lead{color:var(--ink);opacity:.72;font-size:15px;line-height:1.45;margin:0 0 16px;max-width:860px}
+body{padding:22px 26px 18px;max-width:1440px;margin:0 auto}
+.k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:6px 0 4px}
+.lead{color:var(--ink2);font-size:14px;line-height:1.5;margin:0 0 16px;max-width:820px}
 .acc{color:var(--acc)}
 button,input,select{font:inherit;color:inherit}
-.chip{border:1px solid var(--ink);background:var(--bg);padding:5px 10px;font-family:var(--mono);font-size:12px;cursor:pointer}
-.chip.on{background:var(--ink);color:var(--bg)}
-.chip:hover{background:var(--acc);border-color:var(--acc);color:#fff}
-.box{border:1px solid var(--ink)}
-.cap{font-family:var(--mono);font-size:11px;color:var(--muted)}
-.big{font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1}
-@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.chip{border:1px solid var(--hair);background:var(--bg);padding:5px 10px;font-family:var(--mono);font-size:11.5px;cursor:pointer;transition:border-color .15s,background .15s}
+.chip:hover{border-color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.cap{font-family:var(--mono);font-size:10.5px;color:var(--muted);line-height:1.5}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--ink);border-bottom:1px solid var(--hair);margin:0 0 18px}
+.kp{padding:12px 14px 12px 0;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kp + .kp{padding-left:14px;border-left:1px solid var(--hair)}
+.kp b{font-size:30px;font-weight:800;letter-spacing:-.025em;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kp b.acc{color:var(--acc)}
+.kp small{font-size:12px;color:var(--ink2);line-height:1.35}
+.foot{margin-top:14px;padding-top:8px;border-top:1px solid var(--hair)}
+input[type=range]{width:100%;accent-color:var(--acc)}
+@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (max-width:760px){body{padding:16px}.kpis{grid-template-columns:1fr 1fr}.kp:nth-child(3){padding-left:0;border-left:none}.kp b{font-size:24px}}
 
-.wrap{display:grid;grid-template-columns:340px minmax(0,1fr);gap:12px;height:calc(100vh - 190px);min-height:460px}
-.side{display:flex;flex-direction:column;gap:8px;padding:10px;min-height:0}
-#q{border:1px solid var(--ink);padding:8px 10px;font-size:14px;background:var(--bg)}
-.row{display:flex;justify-content:space-between;align-items:baseline}
-input[type=range]{width:100%;accent-color:#ee5a24}
+.wrap{display:grid;grid-template-columns:330px minmax(0,1fr);gap:16px;height:calc(100vh - 300px);min-height:440px}
+.side{display:flex;flex-direction:column;gap:8px;min-height:0}
+#q{border:1px solid var(--hair);padding:8px 10px;font-size:13.5px;background:var(--bg)}
+#q:focus{outline:none;border-color:var(--ink)}
+.row{display:flex;justify-content:space-between;align-items:baseline}.row b{font-size:13px;font-variant-numeric:tabular-nums}
 .chips{display:flex;flex-wrap:wrap;gap:4px}
-#list{list-style:none;margin:0;padding:0;overflow:auto;flex:1;border-top:1px solid var(--ink)}
-#list li{padding:8px 4px;border-bottom:1px solid var(--hair);cursor:pointer;display:grid;gap:2px;animation:rise .3s}
-#list li:hover,#list li.on{background:var(--paper)}
+#list{list-style:none;margin:4px 0 0;padding:0;overflow:auto;flex:1;border-top:1px solid var(--ink)}
+#list li{padding:9px 2px 9px 0;border-bottom:1px solid var(--hair);cursor:pointer;display:grid;gap:3px;animation:rise .3s}
+#list li:hover{background:var(--paper)}
 #list li.on b{color:var(--acc)}
-#list b{font-size:15px}.d{font-size:12px;opacity:.7}
-.n{font-family:var(--mono);font-size:12px}.n em{font-style:normal;color:var(--muted);margin:0 4px 0 8px}.n em:first-child{margin-left:0}
-#map{min-height:0;background:#fff}
-#map .leaflet-tile-pane{filter:grayscale(1) contrast(1.05) opacity(.6)}
-.lbl{background:none;border:none;box-shadow:none;font-family:var(--mono);font-size:11px;color:var(--muted)}
+#list .t{display:flex;justify-content:space-between;gap:8px}#list b{font-size:14px;font-weight:700}
+.km{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.d{font-size:12px;color:var(--ink2)}
+.pr{height:3px;background:var(--hair)}.pr i{display:block;height:100%;background:var(--ink)}
+#list li.on .pr i{background:var(--acc)}
+.n{font-family:var(--mono);font-size:11px;color:var(--ink2)}
+#map{min-height:0;background:var(--bg);border-top:1px solid var(--ink)}
+#map .leaflet-tile-pane{filter:grayscale(1) contrast(1.02) opacity(.55)}
+.lbl{background:none;border:none;box-shadow:none;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.lbl::before{display:none}
+.tip{font-family:var(--sans);font-size:12px;font-weight:600;border:1px solid var(--ink);border-radius:0;box-shadow:none;padding:2px 6px}
 .leaflet-container{font-family:var(--sans)}
-.ours i{display:block;width:16px;height:16px;background:#ee5a24;border:2px solid #0a0a0a}
+.leaflet-popup-content-wrapper{border-radius:0;box-shadow:none;border:1px solid var(--ink)}
+.leaflet-bar a{border-radius:0!important}
+.ours i{display:block;width:14px;height:14px;background:var(--acc);outline:2px solid var(--bg)}
+.ours span{position:absolute;left:18px;top:-2px;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--acc)}
 @media (max-width:760px){.wrap{grid-template-columns:1fr;height:auto}#map{height:60vh}}
 </style></head><body>
 
-<div class="k">инструмент · dashboards · обновляет рутина «конкуренты по понедельникам»</div>
+<div class="k">срез · обновляет рутина «конкуренты по понедельникам» · карточки context/{context} конкурент</div>
 <h1>Карта конкурентов</h1>
-<p class="lead">16 бань Москвы из <span class="acc">competitors/</span>: цены, рейтинг, расстояние. Оранжевый квадрат – мы.</p>
+<p class="lead">16 бань Москвы: где они, сколько стоят, какой рейтинг. <span class="acc">Красный квадрат</span> – мы. Клик по строке или точке – карточка соседа.</p>
+<div class="kpis">
+  <div class="kp"><span class="cap">соседей на карте</span><b id="k1">–</b><small id="k1s"></small></div>
+  <div class="kp"><span class="cap">ближайший</span><b id="k2">–</b><small id="k2s"></small></div>
+  <div class="kp"><span class="cap">медиана часа зала</span><b id="k3">–</b><small>у нас 5 500 ₽ в будни</small></div>
+  <div class="kp"><span class="cap">рейтинг</span><b id="k4">–</b><small id="k4s"></small></div>
+</div>
 <div class="wrap">
-  <aside class="box side">
+  <aside class="side">
     <input id="q" placeholder="поиск: название, район, формат" autocomplete="off">
-    <div class="row"><span class="cap">цена часа зала до</span><b id="pv">12 000 ₽</b></div>
+    <div class="row"><span class="cap">час зала до</span><b id="pv">12 000 ₽</b></div>
     <input id="price" type="range" min="2000" max="12000" step="500" value="12000">
     <div class="chips"><button class="chip on" data-r="0">любой рейтинг</button><button class="chip" data-r="5">только 5,0</button><button class="chip" data-k="7">до 7 км</button><button class="chip" id="osm" type="button">подложка OSM</button></div>
     <ol id="list"></ol>
   </aside>
-  <div class="box" id="map"></div>
+  <div id="map"></div>
 </div>
-<p class="cap">река и кольцо – по данным OpenStreetMap, кольцо МКАД по опорным точкам · координаты бань по адресу из карточки · цены – как опубликованы на 08.10.2026</p>
+<p class="cap foot">река и МКАД – по данным OpenStreetMap · координаты бань по адресу из карточки · цены как опубликованы на 08.10.2026 · подложка OSM включается кнопкой</p>
 <script>const D={"ours": {"name": "{{company}}", "lat": 55.8352, "lon": 37.6655, "entry": 2900, "entry_d": "3 ч, будни", "ph": 5500, "ph_d": "на 6, будни", "ph_we": 8000, "rating": 4.6, "count": 312}, "comps": [{"name": "Сандуновские бани", "lat": 55.7642424, "lon": 37.6212191, "district": "Мещанский / Тверской", "metro": "Кузнецкий Мост (moscow-city.guide, 2026-03-01)", "format": "исторический комплекс 1808 года: общие разряды + номерные бани", "rating": 5.0, "count": 22703, "entry": 5500, "entry_d": "2 ч, высший разряд", "ph": 8500, "ph_d": "на 4, мин. 2 ч", "usp": "Историческая баня 1808 года в центре: общий пар, ресторан, номерные бани; выручка 1,3 млрд ₽ в 2023 (СПАРК через Forbes).", "hours": "номерные бани открываются в 08:00 (Zoon, 2025-09-14); полное расписание общих разрядов не найдено", "site": "https://msk.sanduny.ru/obshchestvennye-razryady", "km": 8.4}, {"name": "Усачёвские бани", "lat": 55.7287928, "lon": 37.5713257, "district": "Хамовники", "metro": "не указано в найденных источниках", "format": "общественные разряды без лимита времени + номерной разряд премиум до 10 гостей (с мая 2026)", "rating": 5.0, "count": 12623, "entry": 3500, "entry_d": "без лимита, первый разряд", "ph": 12000, "ph_d": "приватный зал", "usp": "Безлимит по времени, свежий пар каждый час, пар-мастера, домашняя кухня.", "hours": "второй высший разряд: вт-вс с 09:00, пн с 16:00 (usbani.ru, 2026-10-08); круглосуточно по прежнему обзору", "site": "https://usbani.ru/price", "km": 13.2}, {"name": "Воронцовские бани", "lat": 55.7340062, "lon": 37.6594808, "district": "Таганский", "metro": "Таганская / Пролетарская", "format": "общественные разряды + 8 номерных бань, ресторан, с 1938 года", "rating": 5.0, "count": 10641, "entry": null, "entry_d": "", "ph": 4000, "ph_d": "на 6, до 17:00", "usp": "Средняя цена в центре, 8 тематических номеров, ежечасная смена пара.", "hours": "расписание не найдено (сайт: ежедневно)", "site": "https://moscowpass.com/ru/blog/banya-na-kompaniyu-moskva", "km": 11.3}, {"name": "Жар-Птица", "lat": 55.7911334, "lon": 37.5745088, "district": "Савёловский / Беговой", "metro": "Савёловская (10 мин пешком), Динамо (12 мин)", "format": "банный комплекс 4 000 м² (инвестиции ~600 млн ₽, открытие осень 2022, Alba Group)", "rating": 5.0, "count": 7742, "entry": 4500, "entry_d": "пн–ср днём", "ph": 6250, "ph_d": "до 8 гостей, мин. 4 ч", "usp": "Масштаб: 50-тонные печи, ресторан и пиво, общая спа-зона для пар и компаний; символ банного ренессанса Москвы.", "hours": "ежедневно 9:00-23:00, банный комплекс 9:00-22:00 (jarpticabani.ru, 2026-10-08)", "site": "https://jarpticabani.ru/menu/price/", "km": 7.5}, {"name": "Краснопресненские бани", "lat": 55.7636706, "lon": 37.5658295, "district": "Пресненский", "metro": "не указано в найденных источниках", "format": "общественные разряды, хаммам, солевая сауна, своя пивоварня, номера-люкс", "rating": 5.0, "count": 7236, "entry": 3700, "entry_d": "2,5 ч, до 17:00", "ph": 6000, "ph_d": "до 6 гостей", "usp": "Доступные цены общего отделения в центре, собственное пиво и номера с бассейном.", "hours": "ежедневно 8:00-23:00, понедельник до 22:00 (baninapresne.ru, 2026-10-08)", "site": "https://baninapresne.ru/man", "km": 10.1}, {"name": "Селезнёвские бани", "lat": 55.7810234, "lon": 37.6078525, "district": "Тверской", "metro": "Достоевская (420 м, Яндекс), Новослободская, Менделеевская", "format": "исторические общественные бани 1888 года (архитектор Попов) + 3 номерные бани", "rating": 5.0, "count": 3432, "entry": 4100, "entry_d": "3 ч, высший разряд", "ph": 3500, "ph_d": "до 3 гостей", "usp": "Исторические залы с мансардными окнами, сеансы 2,5-3 часа по умеренной цене.", "hours": "касса работает до 20:00; закрытие 22:00 (Zoon); полное расписание не найдено", "site": "http://www.seleznevskiebani.ru/", "km": 7.0}, {"name": "Варшавские бани", "lat": 55.6801879, "lon": 37.6235278, "district": "Нагорный", "metro": "Нагатинская (370 м), платформа Нагатинская (97 м)", "format": "четырёхэтажный комплекс 1938 года: общие разряды, кабинеты, «бани мира», ресторан", "rating": 5.0, "count": 9055, "entry": 2950, "entry_d": "3 ч", "ph": null, "ph_d": "", "usp": "Больше всех оценок в Яндексе среди бань выборки (9 055); общий разряд около 3 000-4 000 ₽ вне центра.", "hours": "пн-пт 9:00-23:00, сб-вс 8:00-23:00 (varshavskie-bani.ru, 2026-10-08)", "site": "https://varshavskie-bani.ru/", "km": 17.4}, {"name": "Ржевские бани", "lat": 55.7868327, "lon": 37.6312611, "district": "Мещанский", "metro": "Рижская (670 м)", "format": "общий мужской и женский разряды, кабинеты, финская сауна с бассейном, кафе", "rating": 4.9, "count": 2674, "entry": 1800, "entry_d": "3,5 ч", "ph": null, "ph_d": "", "usp": "Самый низкий чек выборки: мужской разряд 1 800-1 890 ₽ на 3,5 часа.", "hours": "пн-вс 9:00-23:00; женские дни 9:00-22:00 (rzhevskie-bani.obiz.ru)", "site": "https://rzhevskie-bani.obiz.ru/price/", "km": 5.8}, {"name": "Таёжные бани", "lat": 55.8290977, "lon": 37.4105325, "district": "Покровское-Стрешнево", "metro": "Тушинская, Волоколамская, Мякинино (Яндекс Медицина)", "format": "10 приватных бань на дровах со своим двором, ресторан, отель, теннисный корт", "rating": 5.0, "count": 3257, "entry": null, "entry_d": "", "ph": 7000, "ph_d": "сруб на 12–15", "usp": "Усадьба: у каждой компании свой сруб, двор и отдельный вход; парение для пары 30 000 ₽.", "hours": "круглосуточно (tbania.ru, Яндекс)", "site": "https://www.tbania.ru/", "km": 16.0}, {"name": "Павелецкие бани", "lat": 55.7233026, "lon": 37.639217, "district": "Замоскворечье", "metro": "Павелецкая, Серпуховская, Добрынинская (Яндекс Карты)", "format": "четырёхэтажный комплекс, открылся в 2022: русская, финская, хаммам, купель, бассейн, vip-залы с караоке, ресторан", "rating": 5.0, "count": 3160, "entry": 2000, "entry_d": "от, будни утром", "ph": 10000, "ph_d": "приватное пространство", "usp": "Современный дизайн с классической схемой пара для жителей новых ЖК и бизнес-центров.", "hours": "открыто до 23:00 (Яндекс Карты); полное расписание не найдено", "site": "https://www.forklore.ru/tpost/ea8rn4zlk1-ot-bannogo-lyuksa-do-horoshei-obschestve", "km": 12.6}, {"name": "ТайгаПар", "lat": 55.748486, "lon": 37.5419746, "district": "Пресненский", "metro": "не указано в найденных источниках", "format": "мужской банный клуб: «Царь-парная» на 120 человек (печь 45 т), 5 парных, ресторан авторской кухни", "rating": null, "count": null, "entry": null, "entry_d": "", "ph": 12000, "ph_d": "на 8–10", "usp": "Рекордная изразцовая печь, мужское братство и vip-сьюты в Москва-Сити.", "hours": "с 09:00 до 23:00 (taigapar.ru, 2026-10-08)", "site": "https://taigapar.ru/", "km": 12.4}, {"name": "Siberia", "lat": 55.7924715, "lon": 37.6089786, "district": "Марьина Роща", "metro": "Марьина Роща, Достоевская, Савёловская (dai-zharu.ru)", "format": "сеть премиальных банных спа-комплексов: 10 бань на дровах, программа парения 4 часа, закрытый банный клуб", "rating": 5.0, "count": 1219, "entry": null, "entry_d": "", "ph": null, "ph_d": "программа 4 ч от 32 000 ₽ с гостя", "usp": "Бани как путешествие по регионам России: авторские 4-часовые ритуалы за 32 000+ ₽ с человека, корпоративы и клуб. 13 400 гостей в 2024 (+15%), выручка +26% (Forbes).", "hours": "ежедневно 10:00-00:00 (siberia-spa.ru, 2026-10-08)", "site": "https://siberia-spa.ru/", "km": 5.9}, {"name": "Cave", "lat": 55.7853839, "lon": 37.7161058, "district": "Соколиная Гора / Электрозаводская", "metro": "Электрозаводская", "format": "камерное банное пространство в особняке: групповые церемонии мягкого пара, закрытые сеансы", "rating": 5.0, "count": 126, "entry": 3600, "entry_d": "1,5 ч, один заход", "ph": null, "ph_d": "закрытый сеанс от 60 000 ₽", "usp": "Мягкий пар по авторской технологии «Кейв»: 40-минутный ритуал вместо жёсткого парения, аудитория 25-34 лет – 51% (Forbes, 02.2025).", "hours": "ежедневно 11:00-21:00 (2ГИС)", "site": "https://cave.moscow/cave", "km": 6.4}, {"name": "Потаповские бани", "lat": 55.5331438, "lon": 37.4979041, "district": "Южное Бутово (Потапово)", "metro": "Бунинская аллея (15 мин пешком)", "format": "современная общественная баня, пар каждый час по расписанию из Telegram, безлимит", "rating": 5.0, "count": 1001, "entry": 4000, "entry_d": "будни", "ph": 4000, "ph_d": "до 8, плюс билеты", "usp": "Баня у дома в Южном Бутове: ежечасные ароматные парения, безлимит и парковка.", "hours": "2ГИС: «откроется в 10:00»; полное расписание не найдено; кухня до 22:00", "site": "https://potapovskiebani.ru/price", "km": 35.2}, {"name": "Бани Малевича", "lat": 55.7371442, "lon": 37.3124511, "district": "Одинцовский г.о. (вне границ Москвы; координата парка, не здания)", "metro": "Крылатское (трансфер)", "format": "банный клуб в парке: мужской, женский и общий разряды, приватные кабинеты, панорамный ресторан, банный двор с купелями", "rating": null, "count": null, "entry": 6500, "entry_d": "3 ч, будни", "ph": 3300, "ph_d": "до 8, плюс билеты", "usp": "Лесной парк рядом с Москвой: ресторан, большой женский разряд, звукоизолированные кабинеты; пармастеру платят 100-250 тыс. ₽ (hh.ru 2026-08-06).", "hours": "ежедневно 9:00-23:00 (banimalevicha.ru)", "site": "https://banimalevicha.ru/baths/male/", "km": 24.6}, {"name": "GOOSI Баня & Spa", "lat": 55.7942197, "lon": 37.665381, "district": "Сокольники", "metro": "не указано в найденных источниках", "format": "иммерсивная баня и спа для компаний: сеансы по 2-4 часа, аренда под дни рождения, девичники, корпоративы", "rating": 4.7, "count": 23, "entry": null, "entry_d": "", "ph": 2500, "ph_d": "по отзыву гостя", "usp": "Иммерсивный формат 2-4 часа в парке: свет, звук и ароматы вместо классического парения; аудитория 18-36 лет – 70% (Forbes, 2024).", "hours": "пн-чт 10:00-22:00, пт-вс 10:00 до последнего гостя (goo.si)", "site": "https://goo.si/", "km": 4.6}], "segments": [{"id": "friends-company", "name": "компании друзей", "need": "Свой номер со своей парной, купелью и столом на всех, чтобы отметить повод и поговорить без посторонних.", "message": "Номер на 6 человек со своей парной, купелью и столом, бронь за две минуты, цена делится на всех.", "price": "средняя: чек делят на всех, ориентир – цена на человека", "size": "среди мужчин общение с друзьями 21% мотивов (женщины 13%, Авито 2026); 62% мужчин-посетителей ходят с друзьями или на праздники (Выберу 2025); 21% москвичей парятся в банях у друзей; доли сегмента по выручке бани: не найдено", "channels": ["ad-intermediaries", "direct-all-formats", "maps-reviews", "own-base-bot-email"]}, {"id": "couples", "name": "пары", "need": "Уединённый вечер без шума, романтический сценарий, парение вдвоём.", "message": "Вечер вдвоём в тишине: свой модуль, чай, парение в четыре руки по записи.", "price": "низкая–средняя: платят за приватность и повод", "size": "доля парных программ в спа около 40% (Thai-SPA 7 Красок, 1 пол. 2026), в банях аналогичной цифры не найдено", "channels": ["ai-blogger-search-outreach", "gift-certificates", "instagram-producer-micro", "maps-reviews"]}, {"id": "corporate", "name": "корпоративные клиенты", "need": "Командное событие или подарок сотрудникам и партнёрам к Новому году без хлопот с оформлением.", "message": "Сертификат на номер для команды или на сумму, закрывающие документы, срок 6 месяцев.", "price": "низкая: бюджет на человека задан, важны документы и простота", "size": "доля корпоратов в выручке московской бани: не найдено; в Казани 'кратно выросло число корпоративных заказов'; аналог из загородной базы отдыха: корпоративные клиенты 40% выручки, 30 млн руб за 3 месяца (КРИК, не баня)", "channels": ["direct-all-formats", "gift-certificates", "own-base-bot-email"]}, {"id": "steam-connoisseurs", "name": "ценители пара", "need": "Сильный пар, мастер-парильщик, расписание паров, веники и купели.", "message": "Новый состав пара каждый час, мастера-парильщики, дровяная печь, расписание в Telegram.", "price": "средняя: сравнивают цену часа с эталонами Сандунов и Усачёвских", "size": "66% россиян заказывают услуги парения (Авито Услуги 2024), 64% выбирают парение веником; 41% парятся с банщиком; спрос на пармастеров +65% (январь 2026)", "channels": ["maps-reviews", "own-base-bot-email"]}, {"id": "wellness-women", "name": "женщины в будни днём", "need": "Пауза в будний день, спа-процедуры, массаж и парение в одном месте.", "message": "Будни до 17:00: парение, массаж и чай, дневная цена ниже вечерней.", "price": "средняя: ценят услуги внутри визита, откликаются на дневной тариф", "size": "женщины 47% регулярных посетителей (Выберу, 39% годом ранее); 41% женщин ходят ради ухода за телом (Авито 2026)", "channels": ["ai-geo-visibility", "instagram-producer-micro", "maps-reviews", "offline-radius-partners"]}, {"id": "athletes", "name": "спортсмены", "need": "Восстановление после нагрузок, расписание вне вечернего пика.", "message": "Парная после тренировки: утро и будни дешевле, промокод от вашего клуба.", "price": "высокая–средняя: частые визиты, нужна подписка или промокод", "size": "до 30 лет 48% ходят для восстановления после тренировок (Выберу 2025); 28% мужчин – восстановление после нагрузок (Авито 2026); доля спортсменов среди гостей московской бани: не найдено", "channels": ["offline-radius-partners", "own-base-bot-email", "retarget-trial-sandbox"]}, {"id": "city-guests", "name": "гости города", "need": "Попробовать настоящую русскую баню, понятный английский текст и карта.", "message": "Русская баня с мастером-парильщиком, описание на английском, бронь без звонка.", "price": "низкая: платят за опыт, смотрят на рейтинг", "size": "Москва 26,5 млн туристов в 2025; гости ~20% потребления; доля туристов среди гостей бани: Казань 20% клиентов премиум-бани; Москвы – не найдено", "channels": ["maps-reviews", "offline-radius-partners"]}], "channels": {"direct-all-formats": "Яндекс Директ и VK – все форматы", "optimize-on-sales": "реклама с оптимизацией на визит", "ad-intermediaries": "рекламные кабинеты через посредников", "maps-reviews": "карты и отзывы", "seo-geo-wordpress": "SEO и блог с ответами", "offline-radius-partners": "офлайн в радиусе 2 км", "instagram-producer-micro": "продюсер контента и микроблогеры", "own-base-bot-email": "своя база – бот, рассылки, email", "unusual-ad-cabinets": "неочевидные рекламные кабинеты", "ltv-cac-channel-test": "LTV, CAC и честный тест канала", "retarget-trial-sandbox": "ретаргетинг и пробный визит", "gift-certificates": "подарочные сертификаты", "hyperlocal-geo-sms": "гиперлокальный таргет и SMS", "ai-blogger-search-outreach": "ИИ ищет блогеров", "ai-hypothesis-matrix-quiz": "матрица гипотез и быстрые лендинги", "ai-geo-visibility": "видимость в нейросетях", "ai-voice-calls": "ИИ-звонки"}, "load": {"slots": ["9–13", "13–17", "17–21", "21–01"], "weekday": [22, 41, 79, 64], "weekend": [71, 88, 96, 92]}, "days": ["пн", "вт", "ср", "чт", "пт", "сб", "вс"], "dayk": [0.86, 0.95, 1.0, 1.04, 1.18, 1.43, 1.48], "base": {"river": [[[55.7442, 37.2517], [55.7434, 37.2759], [55.7589, 37.2805], [55.763, 37.2868], [55.7694, 37.3001], [55.7712, 37.3064], [55.7707, 37.3281], [55.7847, 37.3482], [55.7941, 37.3481], [55.8, 37.3345], [55.8093, 37.3571], [55.822, 37.3821], [55.8287, 37.3785], [55.829, 37.3953], [55.8191, 37.4145], [55.8115, 37.4199], [55.8087, 37.4412], [55.8026, 37.4476], [55.7887, 37.4397], [55.7865, 37.4263], [55.7915, 37.418], [55.7914, 37.4103], [55.7775, 37.4041], [55.7742, 37.4341], [55.7742, 37.4553], [55.7624, 37.4645], [55.7539, 37.4531], [55.7471, 37.4367], [55.7411, 37.4493], [55.7429, 37.4648], [55.7485, 37.4742], [55.7645, 37.4764], [55.7682, 37.4845], [55.7597, 37.5117], [55.7476, 37.522], [55.7455, 37.5404], [55.7527, 37.5708], [55.7463, 37.5744], [55.7351, 37.5636], [55.7221, 37.5412], [55.7137, 37.5459], [55.7103, 37.5592], [55.7167, 37.5821], [55.7329, 37.598], [55.7431, 37.6083], [55.7492, 37.6268], [55.7411, 37.6449], [55.7276, 37.6558], [55.7211, 37.6566], [55.7106, 37.6501], [55.707, 37.6422], [55.7061, 37.6289], [55.6867, 37.6316], [55.6867, 37.6696], [55.6945, 37.6893], [55.6933, 37.7076], [55.6813, 37.712], [55.6674, 37.7131], [55.6704, 37.704], [55.6706, 37.6824], [55.6676, 37.675], [55.6544, 37.6717], [55.6433, 37.6945], [55.6409, 37.7295], [55.6487, 37.7798], [55.6473, 37.7853], [55.6426, 37.7838], [55.6258, 37.7898], [55.6178, 37.7981], [55.6163, 37.8314], [55.6165, 37.8419], [55.6171, 37.8508], [55.6092, 37.8684], [55.6052, 37.8697], [55.6003, 37.8543], [55.5946, 37.8726], [55.5772, 37.8789], [55.5691, 37.9047], [55.5593, 37.9176], [55.5567, 37.9318], [55.5544, 37.9402]], [[55.5581, 37.9245], [55.5544, 37.9402], [55.5544, 37.9402]], [[55.6813, 37.712], [55.6732, 37.6907], [55.6712, 37.6874]], [[55.6741, 37.7134], [55.6717, 37.6991], [55.6717, 37.6991]], [[55.6178, 37.7981], [55.612, 37.7985], [55.6097, 37.8164], [55.6164, 37.8262]], [[55.7589, 37.2805], [55.7652, 37.2705], [55.77, 37.2598], [55.7809, 37.2612], [55.7811, 37.2763], [55.7809, 37.2941], [55.7706, 37.3085], [55.7706, 37.3085]], [[55.7378, 37.6064], [55.7462, 37.6267], [55.7423, 37.6374], [55.7313, 37.6505], [55.7313, 37.6505]], [[55.7925, 37.4456], [55.7773, 37.4483], [55.7773, 37.4483]]], "mkad": [[55.911, 37.59], [55.8949, 37.6853], [55.86, 37.77], [55.83, 37.83], [55.76, 37.842], [55.7, 37.835], [55.64, 37.8], [55.5971, 37.746], [55.574, 37.66], [55.59, 37.53], [55.64, 37.46], [55.7, 37.39], [55.7719, 37.369], [55.8209, 37.3892], [55.8641, 37.3983], [55.889, 37.44], [55.907, 37.53]]}};</script>
 <script>/* @preserve
  * Leaflet 1.9.4, a JS library for interactive maps. https://leafletjs.com
@@ -723,25 +747,38 @@ input[type=range]{width:100%;accent-color:#ee5a24}
 //# sourceMappingURL=leaflet.js.map</script>
 <script>
 const fmt=n=>n?n.toLocaleString('ru-RU')+' ₽':'–';
-const map=L.map('map',{zoomControl:true,attributionControl:true}).setView([55.76,37.6],10);
-// base drawn from OpenStreetMap data: the Moskva river and the ring road; tiles are optional
-D.base.river.forEach(l=>L.polyline(l,{color:'#9a9a9a',weight:4,opacity:.7,interactive:false}).addTo(map));
-L.polygon(D.base.mkad,{color:'#0a0a0a',weight:1.2,dashArray:'5 5',fill:true,fillColor:'#f4f4f2',fillOpacity:1,interactive:false,smoothFactor:2}).addTo(map).bringToBack();
-L.tooltip({permanent:true,direction:'center',className:'lbl'}).setLatLng([55.905,37.5]).setContent('МКАД').addTo(map);
+const css=k=>getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+const INK=css('--ink'),ACC=css('--acc'),MUTE=css('--muted');
+const map=L.map('map',{zoomControl:true,attributionControl:true,zoomSnap:.25}).setView([55.755,37.62],10.25);
+L.polygon(D.base.mkad,{color:MUTE,weight:1,dashArray:'3 5',fill:true,fillColor:css('--paper'),fillOpacity:1,interactive:false,smoothFactor:2}).addTo(map);
+D.base.river.forEach(l=>L.polyline(l,{color:css('--hair'),weight:5,opacity:1,interactive:false}).addTo(map));
+D.base.river.forEach(l=>L.polyline(l,{color:MUTE,weight:1,opacity:.6,interactive:false}).addTo(map));
+L.tooltip({permanent:true,direction:'center',className:'lbl'}).setLatLng([55.905,37.48]).setContent('МКАД').addTo(map);
+L.tooltip({permanent:true,direction:'center',className:'lbl'}).setLatLng([55.70,37.56]).setContent('Москва-река').addTo(map);
 const tiles=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18});
 document.getElementById('osm').onclick=e=>{const on=!map.hasLayer(tiles);on?tiles.addTo(map):map.removeLayer(tiles);e.target.classList.toggle('on',on);};
-const ours=L.marker([D.ours.lat,D.ours.lon],{icon:L.divIcon({className:'ours',html:'<i></i>',iconSize:[16,16]})}).addTo(map).bindPopup('<b>'+D.ours.name+'</b><br>вход '+fmt(D.ours.entry)+' · час зала '+fmt(D.ours.ph));
+L.marker([D.ours.lat,D.ours.lon],{icon:L.divIcon({className:'ours',html:'<i></i><span>мы</span>',iconSize:[14,14]}),zIndexOffset:900}).addTo(map).bindPopup('<b>'+D.ours.name+'</b><br>вход '+fmt(D.ours.entry)+' · час зала '+fmt(D.ours.ph));
 let ring=null;
-const M=D.comps.filter(c=>c.lat).map(c=>{const m=L.circleMarker([c.lat,c.lon],{radius:8,color:'#0a0a0a',weight:1.5,fillColor:'#0a0a0a',fillOpacity:.85}).addTo(map);
-  m.bindPopup('<b>'+c.name+'</b><br>'+c.district+'<br>вход '+fmt(c.entry)+(c.entry_d?' · '+c.entry_d:'')+'<br>час зала '+fmt(c.ph)+(c.ph_d?' · '+c.ph_d:'')+'<br>рейтинг '+(c.rating||'–')+' · '+c.km+' км от нас');
+const M=D.comps.filter(c=>c.lat).map(c=>{const m=L.circleMarker([c.lat,c.lon],{radius:6,color:INK,weight:1.5,fillColor:INK,fillOpacity:1}).addTo(map);
+  m.bindTooltip(c.name,{direction:'top',offset:[0,-6],className:'tip'});
+  m.bindPopup('<b>'+c.name+'</b><br>'+c.district+'<br>вход '+fmt(c.entry)+(c.entry_d?' · '+c.entry_d:'')+'<br>час зала '+fmt(c.ph)+(c.ph_d?' · '+c.ph_d:'')+'<br>★ '+(c.rating||'–')+' · '+c.km+' км от нас');
   m.on('click',()=>sel(c.name)); return {c,m};});
-let R=0,K=0,P=12000;
-function sel(n){document.querySelectorAll('#list li').forEach(li=>li.classList.toggle('on',li.dataset.n===n));M.forEach(x=>x.m.setStyle({fillColor:x.c.name===n?'#ee5a24':'#0a0a0a',color:x.c.name===n?'#ee5a24':'#0a0a0a',radius:x.c.name===n?11:8}));}
+const PH=D.comps.filter(c=>c.ph).map(c=>c.ph).sort((a,b)=>a-b),med=PH.length%2?PH[(PH.length-1)/2]:(PH[PH.length/2-1]+PH[PH.length/2])/2;
+const near=[...D.comps].filter(c=>c.km).sort((a,b)=>a.km-b.km)[0];
+const R5=D.comps.filter(c=>c.rating>=5).length;
+document.getElementById('k1').textContent=D.comps.length;document.getElementById('k1s').textContent='в радиусе 7 км – '+D.comps.filter(c=>c.km<=7).length;
+document.getElementById('k2').textContent=near.km+' км';document.getElementById('k2s').textContent=near.name;
+document.getElementById('k3').textContent=fmt(med);
+const k4=document.getElementById('k4');k4.textContent=D.ours.rating.toString().replace('.',',');k4.classList.add('acc');document.getElementById('k4s').textContent='у '+R5+' соседей 5,0 – отзывы решают';
+let R=0,K=0,P=12000,SEL=null;
+function sel(n){SEL=n;document.querySelectorAll('#list li').forEach(li=>li.classList.toggle('on',li.dataset.n===n));M.forEach(x=>{const on=x.c.name===n;x.m.setStyle({fillColor:on?ACC:INK,color:on?ACC:INK,radius:on?9:6});if(on)x.m.bringToFront();});}
+const maxPh=Math.max(...PH);
 function draw(){const q=document.getElementById('q').value.trim().toLowerCase();
   const vis=M.filter(({c})=>(!q||(c.name+' '+c.district+' '+c.format).toLowerCase().includes(q))&&(!R||c.rating>=R)&&(!K||c.km<=K)&&(!c.ph||c.ph<=P));
-  M.forEach(x=>{const on=vis.includes(x);x.m.setStyle({opacity:on?1:.15,fillOpacity:on?.85:.08});});
-  if(ring){map.removeLayer(ring);ring=null} if(K){ring=L.circle([D.ours.lat,D.ours.lon],{radius:K*1000,color:'#ee5a24',weight:1,dashArray:'4 4',fill:false}).addTo(map);}
-  document.getElementById('list').innerHTML=vis.sort((a,b)=>a.c.km-b.c.km).map(({c})=>`<li data-n="${c.name}"><b>${c.name}</b><span class="d">${c.district.split(',')[0]} · ${c.km} км</span><span class="n"><em>вход</em> ${fmt(c.entry)}<em>час</em> ${fmt(c.ph)}<em>★</em> ${c.rating||'–'}</span></li>`).join('')||'<li class="cap">ничего не нашлось</li>';}
+  M.forEach(x=>{const on=vis.includes(x);x.m.setStyle({opacity:on?1:.12,fillOpacity:on?1:.06});});
+  if(ring){map.removeLayer(ring);ring=null} if(K){ring=L.circle([D.ours.lat,D.ours.lon],{radius:K*1000,color:ACC,weight:1,dashArray:'4 4',fill:false}).addTo(map);}
+  document.getElementById('list').innerHTML=vis.sort((a,b)=>a.c.km-b.c.km).map(({c})=>`<li data-n="${c.name}"><span class="t"><b>${c.name}</b><span class="km">${c.km} км</span></span><span class="d">${c.district.split(',')[0]} · ${c.format||''}</span><span class="pr"><i style="width:${c.ph?(c.ph/maxPh*100).toFixed(0):0}%"></i></span><span class="n">час ${fmt(c.ph)} · вход ${fmt(c.entry)} · ★ ${c.rating||'–'}</span></li>`).join('')||'<li class="cap">ничего не нашлось</li>';
+  if(SEL)sel(SEL);}
 document.getElementById('q').oninput=draw;
 document.getElementById('price').oninput=e=>{P=+e.target.value;document.getElementById('pv').textContent=fmt(P);draw();};
 document.querySelectorAll('.chip[data-r],.chip[data-k]').forEach(b=>b.onclick=()=>{if(b.dataset.r!==undefined){R=+b.dataset.r;document.querySelectorAll('[data-r]').forEach(x=>x.classList.toggle('on',x===b));}else{K=K?0:+b.dataset.k;b.classList.toggle('on',!!K);}draw();});
