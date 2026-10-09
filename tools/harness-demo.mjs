@@ -81,13 +81,26 @@ function initFolder() {
   save();
 }
 
-function commit(msg) {
+function commit(msg, e = {}) {
   try {
     git('add', '-A');
-    git('-c', 'user.name=harness-demo', '-c', 'user.email=harness@aimindset.local', 'commit', '-q', '--allow-empty', '-m', msg);
+    const who = ['-c', 'user.name=harness-demo', '-c', 'user.email=harness@aimindset.local'];
+    let main = null;
+    try { main = git('symbolic-ref', '--short', 'HEAD').trim(); git('rev-parse', '-q', '--verify', 'HEAD'); } catch { main = null; }
+    if (e.branch && e.agentMsg && main) {
+      // the agent commits in its own branch; the merge commit has the same tree, so the working folder does not move
+      const base = git('rev-parse', 'HEAD').trim();
+      git('checkout', '-q', '-B', e.branch);
+      git(...who, 'commit', '-q', '--allow-empty', '-m', e.agentMsg);
+      const tip = git('rev-parse', 'HEAD').trim();
+      const merge = git(...who, 'commit-tree', `${tip}^{tree}`, '-p', base, '-p', tip, '-m', `${msg}\n\nслито: ${e.branch}${e.accepts ? ` · принял ${e.accepts}` : ''}`).trim();
+      git('update-ref', `refs/heads/${main}`, merge);
+      git('symbolic-ref', 'HEAD', `refs/heads/${main}`);
+      console.log(`${R}● ${tip.slice(0, 7)}${X} ${e.branch} · ${e.agentMsg.split('\n')[0]}`);
+    } else git(...who, 'commit', '-q', '--allow-empty', '-m', msg);
     const hash = git('rev-parse', '--short', 'HEAD').trim();
     console.log(`${R}● ${hash}${X} ${B}${msg}${X}`);
-  } catch (e) { console.error('commit failed', e.message); }
+  } catch (err) { console.error('commit failed', err.message); }
 }
 
 function mirrorSkills() {
@@ -120,7 +133,7 @@ async function applyEvent(e) {
     }
     case 'mirror': mirrorSkills(); console.log('   ↳ skills/ → .claude/skills · .agents/skills'); break;
     case 'lane': lane(e.lane, { status: e.status, target: e.target, note: e.note || '' }); break;
-    case 'commit': commit(e.msg); break;
+    case 'commit': commit(e.msg, e); break;
   }
 }
 

@@ -34,9 +34,9 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
 
   // ---------- layers: one shape per abstraction ----------
   const LAYERS = {
-    section:    { label: 'раздел',     sym: 'square',   fill: 'hair',  size: 340,  glyph: '▣' },
+    section:    { label: 'раздел',     sym: 'square',   fill: 'hair',  size: 190,  glyph: '▣' },
     hub:        { label: 'хаб',        sym: 'diamond',  fill: true,    size: 380, glyph: '◆', ax: 0,     ay: -0.08 },
-    context:    { label: 'контекст',   sym: 'square',   fill: true,    size: 150, glyph: '■', ax: -0.3,  ay: -0.42 },
+    context:    { label: 'контекст',   sym: 'square',   fill: true,    size: 100, glyph: '■', ax: -0.3,  ay: -0.42 },
     raw:        { label: 'сырьё',      sym: 'square',   fill: false,   size: 90,  glyph: '▫', ax: -0.9,  ay: -0.36 },
     source:     { label: 'встреча',    sym: 'square',   fill: false,   size: 150, glyph: '□', ax: -0.9,  ay: 0.3 },
     research:   { label: 'вопрос',     sym: 'wye',      fill: false,   size: 160, glyph: 'Y', ax: -0.62, ay: 0.62 },
@@ -80,6 +80,24 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     secretary: { title: 'секретарь', skill: 'meeting-to-decisions' }, dispatcher: { title: 'постановщик', skill: 'decisions-to-tasks' },
     researcher: { title: 'исследователь', skill: 'competitors-exa' }, checker: { title: 'проверяющий', skill: 'rules-check' },
   };
+  // an agent is a file: people/{role} агент <имя>.md with `lane:` in frontmatter – instruction and prompt
+  function agentFileOf(id) {
+    const want = META.lanes && META.lanes[id] && META.lanes[id].file;
+    return (want && S.files.get(want)) || [...S.files.values()].find((f) => f.fm && f.fm.lane === id && f.layer === 'role') || null;
+  }
+  function roleTask(id) {
+    const f = agentFileOf(id), m = f && /```text\n([\s\S]*?)```/.exec(f.content || '');
+    return m ? m[1].trim() : ROLE_TASKS[id] || `Прочитай AGENTS.md и инструкцию своей роли в people/. Сделай одну задачу роли «${(LANE_META[id] || {}).title || id}», в конце журнал в sessions/.`;
+  }
+  // the agent's session at this step: who, read, created, journal, branch, commit
+  function sessHtml(ph) {
+    if (!ph || !ph.sessions || !ph.sessions.length) return '';
+    const c = S.commits.find((x) => x.phase === ph.id);
+    return `<div class="sess"><span class="cap">сессия агента · ветка ${esc(ph.branch || '')} → main</span>` + ph.sessions.map((x) => {
+      const has = S.files.has(x.path);
+      return `<div class="se"><a class="se-a" data-p="${esc(x.file)}" title="инструкция и промпт агента">● ${esc(x.agent)}</a><span class="se-n">прочитал ${x.read} · создал ${x.created}</span>${has ? `<a class="se-j" data-p="${esc(x.path)}" title="${esc(x.path)}">журнал ↗</a>` : '<i class="se-w">журнал в конце шага</i>'}</div>`;
+    }).join('') + `<div class="se-c"><span>${esc(ph.agentCommit || '')}</span><i> · в main${c ? ` <b>${esc(c.hash)}</b>` : ''}${ph.accepts ? `, сливает ${esc(ph.accepts)}` : ''}</i></div></div>`;
+  }
   const CHANNELS = [['linkedin', 'LinkedIn'], ['telegram', 'Telegram'], ['carousel', 'карусель'], ['landing', 'лендинг']];
 
   function layerOf(p) {
@@ -268,7 +286,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     }
     nodes.push(...ghosts.values());
     for (const id of LANE_ORDER) {
-      const l = S.lanes[id];
+      const l = S.lanes[id] || (MODE !== 'replay' && agentFileOf(id) ? { status: 'idle' } : null);
       if (!l) continue;
       const aid = `agent:${id}`;
       nodes.push({ id: aid, layer: 'agent', title: l.title || LANE_META[id].title, lane: id, running: l.status === 'running' });
@@ -276,6 +294,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       const wantSkill = l.skill || LANE_META[id].skill;
       const skillFile = [...S.files.values()].find((f) => f.layer === 'skill' && f.title === wantSkill);
       if (skillFile) links.push({ source: aid, target: skillFile.path, kind });
+      const af = agentFileOf(id);
+      if (af) { links.push({ source: aid, target: af.path, kind: 'instr' }); nodes[nodes.length - 1].afile = af.path; }
       for (const p of S.wrote[id] || []) if (S.files.has(p)) links.push({ source: aid, target: p, kind });
     }
     // console runs (live): an agent node while it works, linked to the files it touches;
@@ -321,14 +341,14 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
         g.call(d3.drag().on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.2).restart(); d.fx = d.x; d.fy = d.y; })
           .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
           .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
-        g.on('click', (e, d) => (d.file ? openPreview(d.file.path) : d.run ? openSession(d.run) : null))
+        g.on('click', (e, d) => (d.file ? openPreview(d.file.path) : d.afile ? openPreview(d.afile) : d.run ? openSession(d.run) : null))
           .on('mouseenter', (e, d) => { hoverId = d.id; highlight(); })
           .on('mouseleave', () => { hoverId = null; highlight(); });
         return g;
       });
     const dense = next.length > 70;
     svg.classed('dense', dense);
-    nodeSel.attr('class', (d) => `node ${d.layer === 'ghost' ? 'ghost' : ''} ${d.layer === 'agent' ? 'agent' : ''} ${hiddenLayers.has(d.layer) ? 'off' : ''} L-${d.layer}`);
+    nodeSel.attr('class', (d) => `node ${d.layer === 'ghost' ? 'ghost' : ''} ${d.layer === 'agent' ? 'agent' : ''} ${d.file && d.file.fm && d.file.fm.kind === 'агент' ? 'agentfile' : ''} ${hiddenLayers.has(d.layer) ? 'off' : ''} L-${d.layer}`);
     nodeSel.classed('sel', (d) => d.id === SEL).classed('fresh', (d) => S.fresh.has(d.id));
     linkSel.classed('off', (l) => hiddenLayers.has((nodeById.get(l.source.id || l.source) || {}).layer) || hiddenLayers.has((nodeById.get(l.target.id || l.target) || {}).layer));
     nodeSel.select('path').attr('d', (d) => d3.symbol(SYM[LAYERS[d.layer].sym], LAYERS[d.layer].size)())
@@ -427,7 +447,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   function renderCommits() {
     const ol = document.getElementById('commits');
     const clickable = MODE !== 'replay';
-    ol.innerHTML = S.commits.map((c, i) => `<li class="${i === S.commits.length - 1 && S.freshCommit && now() - S.freshCommit < 2500 ? 'fresh' : ''}${/^agent\(|^session\(/.test(c.msg) ? ' ag' : ''}${clickable ? ' click' : ''}"${clickable ? ` data-h="${esc(c.hash)}" title="${esc(c.who || '')} · клик – что в коммите, откатить, форк"` : ''}><b>${esc(c.hash)}</b><span><i class="cm">${esc(c.msg)}</i>${c.who || c.date ? `<small class="cw">${esc(c.who || '')}${c.date ? ` · ${new Date(c.date).toLocaleString('ru', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}` : ''}</small>` : ''}</span></li>`).join('');
+    ol.innerHTML = S.commits.map((c, i) => `<li class="${i === S.commits.length - 1 && S.freshCommit && now() - S.freshCommit < 2500 ? 'fresh' : ''}${/^agent\(|^session\(/.test(c.msg) ? ' ag' : ''}${clickable ? ' click' : ''}"${clickable ? ` data-h="${esc(c.hash)}" title="${esc(c.who || '')} · клик – что в коммите, откатить, форк"` : ''}><b>${esc(c.hash)}</b><span><i class="cm">${esc(String(c.msg).split('\n')[0])}</i>${c.branch ? `<small class="cb">⑂ ${esc(c.branch)} → main</small>` : ''}${c.who || c.date ? `<small class="cw">${esc(c.who || '')}${c.date ? ` · ${new Date(c.date).toLocaleString('ru', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}` : ''}</small>` : ''}</span></li>`).join('');
     ol.scrollTop = ol.scrollHeight;
     document.getElementById('commitCount').textContent = S.commits.length;
   }
@@ -462,7 +482,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       if (l.status === 'running') active++;
       const status = { idle: 'ждёт запуска', waiting: l.note || 'ждёт', running: 'пишет', done: 'готово' }[l.status] || l.status;
       const wrote = S.wrote[id] ? S.wrote[id].size : 0;
-      return `<div class="lane ${l.status}"><i class="dot"></i><div><b>${esc(l.title || m.title)}</b><small>${esc(l.skill || m.skill)}</small></div>
+      const af = agentFileOf(id);
+      return `<div class="lane ${l.status}"><i class="dot"></i><div>${af ? `<a class="open an" data-p="${esc(af.path)}" title="инструкция и промпт агента"><b>${esc(l.title || m.title)}</b><small>инструкция ↗</small></a>` : `<b>${esc(l.title || m.title)}</b><small>${esc(l.skill || m.skill)}</small>`}</div>
         <div><div class="tgt">${l.status === 'running' ? `→ ${esc(bare(base(l.target || '')))}` : esc(status)}${wrote ? ` <small style="display:inline">· ${wrote} ф.</small>` : ''}</div><div class="bar"></div></div></div>`;
     }).join('');
     document.getElementById('laneCount').textContent = `${active} в работе`;
@@ -589,12 +610,13 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     if (askEl) {
       const secId = S.lastFile && S.lastFile.includes('/') ? S.lastFile.split('/')[0] : null;
       const sec = secId && SECTIONS[secId];
-      const key = `${ph ? ph.id || ph.live : ''}|${secId || ''}`;
+      const key = `${ph ? ph.id || ph.live : ''}|${secId || ''}|${ph && ph.sessions ? ph.sessions.filter((x) => S.files.has(x.path)).length : ''}|${S.commits.length}`;
       if (askEl.dataset.key !== key) {
         askEl.dataset.key = key;
         askEl.innerHTML = (ph && ph.id ? `<div class="stp"><i>${ph.id.slice(1)}</i><b>${esc(ph.stop ? ph.stop.title : ph.title)}</b></div>` : '') +
           (ph ? howHtml(ph.how) : '') +
           (ph && ph.ask ? `<div class="ak"><span class="cap">запрос агенту на этом шаге</span><p class="ak-q">${esc(ph.ask)}</p></div>` : '') +
+          sessHtml(ph) +
           (sec ? `<div class="secb"><span class="cap">раздел папки · запросы от простого к сложному</span>${sectionCard(secId, sec)}</div>` : '') ||
           '<p class="cap">шаг появится вместе с историей</p>';
       }
@@ -602,6 +624,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       document.getElementById('askLevel').textContent = ph && ph.live ? ph.live : i >= 0 ? `${i + 1} из ${n}` : '';
     }
   }
+  document.getElementById('ask').addEventListener('click', (e) => { const a = e.target.closest('[data-p]'); if (a) openPreview(a.dataset.p); });
   document.getElementById('narrFile').addEventListener('click', (e) => { const p = e.currentTarget.dataset.p; if (p) openPreview(p); });
   const fmt = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 
@@ -903,6 +926,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     if (halt) $('stHalt').innerHTML = `<b>точка остановки</b><span>${mdInline(halt, idx)}</span>`;
     $('stAsk').hidden = !ph.ask;
     if (ph.ask) $('stAsk').innerHTML = `<b>запрос агенту на этом шаге</b><p>${esc(ph.ask)}</p>`;
+    $('stSess').hidden = !(ph.sessions && ph.sessions.length);
+    $('stSess').innerHTML = sessHtml(ph);
     $('stTree').innerHTML = stopTree(new Set(shown));
     $('stFiles').innerHTML = shown.length ? `<b>${id === 'p02' ? 'переименовано' : 'появилось в папке'} · ${shown.length}</b><div class="chips">${shown.map((p) => `<a data-p="${esc(p)}" title="${esc(p)}">${LAYERS[layerAt(p)].glyph} ${esc(bare(base(p)))}</a>`).join('')}</div>` : '';
     const nxt = META.phases[i + 1];
@@ -931,7 +956,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   }
   $('stGo').onclick = () => closeStop(true);
   $('stOff').onclick = () => { setStops(false); closeStop(true); };
-  ['stFiles', 'stTree'].forEach((id) => $(id).addEventListener('click', (e) => { const a = e.target.closest('a[data-p]'); if (a) { closeStop(false); openPreview(a.dataset.p); } }));
+  ['stFiles', 'stTree', 'stSess'].forEach((id) => $(id).addEventListener('click', (e) => { const a = e.target.closest('a[data-p]'); if (a) { closeStop(false); openPreview(a.dataset.p); } }));
   $('stopsBtn').onclick = () => setStops(!STOPS);
 
   // ---------- render loop ----------
@@ -953,14 +978,14 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       case 'rename': renameFile(e.from, e.to, e.content, animate); break;
       case 'mirror': S.narr = 'skills/ → .claude/skills и .agents/skills · зеркала обновлены'; break;
       case 'lane': S.lanes[e.lane] = { ...(S.lanes[e.lane] || {}), status: e.status, title: e.title, skill: e.skill, target: e.target, note: e.note }; break;
-      case 'commit': S.commits.push({ hash: e.hash, msg: e.msg }); if (animate) S.freshCommit = now(); break;
+      case 'commit': S.commits.push({ hash: e.hash, msg: e.msg, branch: e.branch, phase: e.phase }); if (animate) S.freshCommit = now(); break;
     }
     markDirty();
   }
 
   async function startReplay() {
     const sc = await fetch(SCENARIO_FILE, { cache: 'no-store' }).then((r) => r.json());
-    META = { questions: sc.questions, answers: sc.answers, phases: sc.phases, duration: sc.duration };
+    META = { questions: sc.questions, answers: sc.answers, phases: sc.phases, duration: sc.duration, lanes: sc.lanes || {} };
     for (const e of sc.events) if (e.type === 'rename') FINAL.set(e.from, e.to);
     { let ph = null; for (const e of sc.events) { if (e.type === 'phase') ph = e.id; if (e.type === 'file' || e.type === 'rename') { const p = e.type === 'file' ? finalPath(e.path) : e.to; if (!FUTURE.has(p)) FUTURE.set(p, { at: e.at, phase: ph }); FUTURE.get(p).content = e.content ?? FUTURE.get(p).content; } } }
     const phaseFiles = {};
@@ -1163,7 +1188,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       e.preventDefault();
       const prompt = document.getElementById('cPrompt').value.trim();
       if (!prompt || !SESSION) return;
-      launch(prompt, Object.keys(ROLE_TASKS).find((k) => ROLE_TASKS[k] === prompt) || '');
+      launch(prompt, LANE_ORDER.find((k) => roleTask(k) === prompt) || Object.keys(ROLE_TASKS).find((k) => ROLE_TASKS[k] === prompt) || '');
     });
     document.getElementById('cPresets').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) document.getElementById('cPrompt').value = b.dataset.p; });
     document.getElementById('runs').addEventListener('click', async (e) => {
@@ -1489,7 +1514,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   // panel 05 in Local and Team: the six roles, each with its last session and a launch button
   function renderLanesLive() {
     const byRole = (id) => S.runs.filter((r) => r.role === id).sort((a, b) => b.startedAt - a.startedAt)[0];
-    const fileOf = (id) => [...S.files.values()].filter((f) => f.layer === 'session' && f.fm.role === id).sort((a, b) => String(b.fm.started).localeCompare(String(a.fm.started)))[0];
+    const fileOf = (id) => [...S.files.values()].filter((f) => f.layer === 'session' && (f.fm.role || f.fm.lane) === id).sort((a, b) => String(b.fm.started || b.path).localeCompare(String(a.fm.started || a.path)))[0];
     const active = S.runs.filter((r) => r.status === 'running').length;
     $('lanes').innerHTML = LANE_ORDER.map((id) => {
       const m = LANE_META[id], r = byRole(id), sf = !r && fileOf(id);
@@ -1497,19 +1522,20 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       const t = toolsLive && NEEDS[id] ? toolsLive.find((x) => x.id === NEEDS[id]) : null;
       const miss = t && !t.ready ? `нет ${t.env}` : '';
       const info = r ? (r.status === 'running' ? `${r.last || 'думает'} · ${tok((r.usage || {}).output)} ток. · ${dur(r.startedAt)}` : `${hm(r.startedAt)} · ${STATUS_RU[r.status] || r.status} · ${(r.touched || []).length} ф.`)
-        : sf ? `${String(sf.fm.started || '').slice(11)} · ${STATUS_RU[sf.fm.status] || sf.fm.status} · ${sf.fm.files || 0} ф.` : (miss || 'ждёт запуска');
+        : sf ? (sf.fm.started ? `${String(sf.fm.started).slice(11)} · ${STATUS_RU[sf.fm.status] || sf.fm.status} · ${sf.fm.files || 0} ф.` : `журнал · шаг ${String(sf.fm.step || '').slice(1)} · ${esc(sf.fm.branch || '')}`) : (miss || 'ждёт запуска');
       const open = r ? `data-run="${esc(r.id)}"` : sf ? `data-p="${esc(sf.path)}"` : '';
       const btns = !SESSION ? '' : r && r.status === 'running' ? `<button type="button" data-stop="${esc(r.id)}" title="остановить">■</button>`
-        : `<button type="button" data-role="${id}" title="запустить: ${esc(ROLE_TASKS[id])}">▶</button><button type="button" data-edit="${id}" title="задачу – в консоль: поправить и запустить оттуда">✎</button>`;
-      return `<div class="lane ${st === 'running' ? 'running' : st === 'done' ? 'done' : st === 'failed' || st === 'stopped' ? 'waiting' : ''}"><i class="dot"></i><div><b>${m.title}</b><small>${m.skill}</small></div>
+        : `<button type="button" data-role="${id}" title="запустить: ${esc(roleTask(id))}">▶</button><button type="button" data-edit="${id}" title="задачу – в консоль: поправить и запустить оттуда">✎</button>`;
+      const af = agentFileOf(id);
+      return `<div class="lane ${st === 'running' ? 'running' : st === 'done' ? 'done' : st === 'failed' || st === 'stopped' ? 'waiting' : ''}"><i class="dot"></i><div>${af ? `<a class="open an" data-p="${esc(af.path)}" title="инструкция и промпт агента"><b>${m.title}</b><small>инструкция ↗</small></a>` : `<b>${m.title}</b><small>${m.skill}</small>`}</div>
         <div><div class="lrow"><a class="tgt${open ? ' open' : ''}${miss && !r ? ' miss' : ''}" ${open}>${esc(info)}</a>${btns}</div>${st === 'running' ? '<div class="bar"></div>' : ''}</div></div>`;
     }).join('') + `<div class="cap">${SESSION ? `▶ – запуск роли · исполнитель ${esc($('cRunner').value)} · ${esc($('cModel').value)} (меняется в консоли) · клик по статусу – сессия` : TEAM ? 'последняя сессия каждой роли из sessions/ · запуск – в Local' : 'запуск ролей – в полном режиме Local: bin/open.sh'}</div>`;
     $('laneCount').textContent = `${active} в работе`;
   }
   $('lanes').addEventListener('click', async (e) => {
     const b = e.target.closest('button, a.open'); if (!b) return;
-    if (b.dataset.role) { b.disabled = true; await launch(ROLE_TASKS[b.dataset.role], b.dataset.role); return; }
-    if (b.dataset.edit) { $('cPrompt').value = ROLE_TASKS[b.dataset.edit]; $('cPrompt').dataset.role = b.dataset.edit; document.querySelector('#tabs button[data-tab=console]').click(); $('cPrompt').focus(); return; }
+    if (b.dataset.role) { b.disabled = true; await launch(roleTask(b.dataset.role), b.dataset.role); return; }
+    if (b.dataset.edit) { $('cPrompt').value = roleTask(b.dataset.edit); $('cPrompt').dataset.role = b.dataset.edit; document.querySelector('#tabs button[data-tab=console]').click(); $('cPrompt').focus(); return; }
     if (b.dataset.stop) { stopRun(b.dataset.stop); return; }
     if (b.dataset.run) openSession(b.dataset.run); else if (b.dataset.p) openPreview(b.dataset.p);
   });

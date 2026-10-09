@@ -83,11 +83,18 @@ export function buildTimeline(kitDir, answersOverride) {
     const start = t;
     events.push({ at: t, type: 'phase', id: ph.id, title: ph.title });
     if (!ph.parallel) {
+      const used = new Set();
       for (const st of ph.steps) {
         const type = st.type || 'file';
-        if (st.note) events.push({ at: t, type: 'narrate', text: st.note, path: st.path || null });
+        // an agent step in a sequential phase: the agent lights up and the file is its work
+        if (st.lane) {
+          const meta = manifest.lanes[st.lane] || { title: st.lane, skill: '' };
+          used.add(st.lane);
+          events.push({ at: t, type: 'lane', lane: st.lane, status: 'running', title: meta.title, skill: meta.skill, target: st.path || null, note: st.note });
+        }
+        if (st.note) events.push({ at: t, type: 'narrate', text: st.note, path: st.path || null, lane: st.lane });
         if (type === 'file') {
-          events.push(fileEvent(t + Math.min(1200, st.dwell * 0.35), st));
+          events.push(fileEvent(t + Math.min(1200, st.dwell * 0.35), st, st.lane));
         } else if (type === 'answers') {
           events.push({ at: t, type: 'answers', dwell: st.dwell });
         } else if (type === 'mirror') {
@@ -108,6 +115,10 @@ export function buildTimeline(kitDir, answersOverride) {
           preNaming.length = 0;
         }
         t += st.dwell;
+      }
+      for (const lane of used) {
+        const meta = manifest.lanes[lane] || { title: lane, skill: '' };
+        events.push({ at: t, type: 'lane', lane, status: 'done', title: meta.title, skill: meta.skill, target: null });
       }
     } else {
       const laneClock = {};
@@ -133,8 +144,11 @@ export function buildTimeline(kitDir, answersOverride) {
       }
       t = end;
     }
-    events.push({ at: t, type: 'commit', msg: ph.commit, phase: ph.id });
-    phases.push({ id: ph.id, title: ph.title, start, end: t, parallel: !!ph.parallel, stop: ph.stop || null, ask: ph.ask || null, how: ph.how || null });
+    // an agent works in its own branch; a person merges it into main
+    const body = (ph.sessions || []).map((x) => `${x.agent}: прочитал ${x.read}, создал ${x.created} · журнал ${x.path}`).join('\n');
+    events.push({ at: t, type: 'commit', msg: ph.commit, phase: ph.id, branch: ph.branch || null, agentMsg: ph.agentCommit ? `${ph.agentCommit}\n\n${ph.ask ? `запрос: ${ph.ask}\n` : ''}${body}` : null, accepts: ph.accepts || null });
+    phases.push({ id: ph.id, title: ph.title, start, end: t, parallel: !!ph.parallel, stop: ph.stop || null, ask: ph.ask || null, how: ph.how || null,
+      sessions: ph.sessions || null, branch: ph.branch || null, accepts: ph.accepts || null, agentCommit: ph.agentCommit || null });
     t += 600;
   }
   events.sort((a, b) => a.at - b.at || order(a) - order(b));
