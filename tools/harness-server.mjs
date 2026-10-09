@@ -502,6 +502,34 @@ function fork({ to, at, open }) {
   return { ok: true, to: home(target), open: openCmd };
 }
 
+// «выбрать папку»: the macOS folder dialog opens at ~/harness, then open.sh brings up the graph
+// for the chosen folder (reuses a running server for it or takes the next free port).
+// open.sh writes to a log file: a pipe to this server would die with it and take the new server along.
+function switchFolder({ path: want }) {
+  const harness = path.join(HOME, 'harness');
+  const ask = () => new Promise((ok) => {
+    const at = fs.existsSync(harness) ? harness : HOME;
+    const p = spawn('osascript', ['-e', `POSIX path of (choose folder with prompt "папка для графа" default location (POSIX file ${JSON.stringify(at)}))`], { stdio: ['ignore', 'pipe', 'ignore'] });
+    let out = ''; p.stdout.on('data', (d) => { out += d; }); p.on('close', (code) => ok(code === 0 ? out.trim().replace(/\/$/, '') : null));
+  });
+  return (want ? Promise.resolve(path.resolve(String(want).trim().replace(/^~(?=\/|$)/, HOME))) : ask()).then((target) => new Promise((resolve) => {
+    if (!target) return resolve({ cancel: true });
+    const st = fs.statSync(target, { throwIfNoEntry: false });
+    if (!target.startsWith(HOME + path.sep) || /[\n"'`$]/.test(target) || !st || !st.isDirectory()) return resolve({ error: 'нужна папка внутри домашней, например ~/harness/моя-компания' });
+    if (target === dir) return resolve({ same: true });
+    const kit = fs.existsSync(path.join(target, '.local-only')) ? 'slp' : ''; // the SLP group folder carries the .local-only mark
+    const log = path.join(process.env.TMPDIR || '/tmp', `harness-open-${process.pid}-${Date.now()}.log`);
+    const fd = fs.openSync(log, 'w');
+    spawn(path.join(root, 'bin', 'open.sh'), [target], { detached: true, stdio: ['ignore', fd, fd], env: { ...process.env, NO_OPEN: '1', HARNESS_KIT: kit } }).unref();
+    fs.closeSync(fd);
+    let n = 0;
+    const t = setInterval(() => {
+      const m = (fs.existsSync(log) ? fs.readFileSync(log, 'utf8') : '').match(/http:\/\/localhost:\d+\/\S*/);
+      if (m || ++n > 40) { clearInterval(t); resolve(m ? { ok: true, url: m[0], dir: home(target) } : { error: 'граф для папки не запустился' }); }
+    }, 200);
+  }));
+}
+
 function obsidianVaults() {
   const cfg = readJson(path.join(HOME, 'Library', 'Application Support', 'obsidian', 'obsidian.json'), {});
   return Object.values(cfg.vaults || {}).map((v) => v.path).filter(Boolean);
@@ -578,6 +606,7 @@ http.createServer(async (req, res) => {
     if (url.pathname === '/api/revert') return json(res, 200, revert(await body(req)));
     if (url.pathname === '/api/restore') return json(res, 200, restore(await body(req)));
     if (url.pathname === '/api/fork') return json(res, 200, fork(await body(req)));
+    if (url.pathname === '/api/switch') return json(res, 200, await switchFolder(await body(req)));
     if (url.pathname === '/api/continue') {
       fs.mkdirSync(path.join(dir, '.harness'), { recursive: true });
       fs.writeFileSync(path.join(dir, '.harness', 'continue'), String(Date.now()));

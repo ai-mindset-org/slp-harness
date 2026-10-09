@@ -1468,6 +1468,14 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     $('fbGit').innerHTML = g.remote ? `git: ${esc(g.branch || 'main')} → <a href="${esc(g.remote)}" target="_blank" rel="noopener">${esc(g.remote.replace(/^https:\/\/github\.com\//, ''))} ↗</a>` : (SCENARIO_KIT || [...S.files.values()].some((x) => x.layer === 'person' || x.kind === 'участник')) ? `git: ${esc(g.branch || '–')} · только на этом компьютере: в папке люди, удалённого репозитория нет и не будет` : `git: ${esc(g.branch || '–')} · только локально · свой GitHub: <code>gh repo create &lt;имя&gt; --private --source . --push</code>`;
   }
   $('openFinder').onclick = () => openIn('finder', '');
+  // another folder from ~/harness: the server shows the macOS dialog and starts the graph for it
+  $('pickOther').onclick = async () => {
+    const b = $('pickOther'); b.disabled = true; b.textContent = 'окно выбора…';
+    const r = await post('/api/switch', {}).catch(() => ({ error: 'сервер не ответил' }));
+    if (r && r.url) { location.href = r.url; return; }
+    b.disabled = false; b.textContent = r && r.error ? r.error : 'выбрать папку';
+    if (r && r.error) setTimeout(() => { b.textContent = 'выбрать папку'; }, 4000);
+  };
   let SESSION_T = null;
   function teamBar(st) {
     const g = st.git || {};

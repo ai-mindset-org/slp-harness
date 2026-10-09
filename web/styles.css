@@ -1,7 +1,7 @@
 /* marketing harness · shaper b&w shell, forked from aim-sim-office atelier tokens */
 :root{
   --bg:#ffffff; --ink:#0a0a0a; --soft:#dcdcdc; --hair:#ececec; --grid:#f1f1f1;
-  --muted:#8a8a8a; --accent:#ee5a24; --paper:#fafafa;
+  --muted:#8a8a8a; --accent:#d92027; --paper:#fafafa;
   --mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --ease:cubic-bezier(.2,.7,.1,1);
 }
@@ -561,7 +561,7 @@ body.fold-tabBody #colR{grid-template-rows:auto auto auto}
 .flow-visual{width:100%;height:auto;max-height:100px}.resource-links{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0;font-size:12px}.resource-links a{color:inherit;text-underline-offset:3px}
 
 /* SLP harness · v3, 09.10: минимально, мельче, один красный акцент */
-:root{--accent:#d7261e; --sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+:root{--accent:#d92027; --sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
 body{font-family:var(--sans); font-size:12.5px; line-height:1.45; padding:10px 14px; gap:8px; letter-spacing:0}
 code,kbd,pre,textarea,#tree,#commits,.clock,.cmd,.cap{font-family:var(--mono)}
 button{letter-spacing:.01em}
