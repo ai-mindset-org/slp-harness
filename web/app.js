@@ -572,6 +572,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const h = ph.how || {};
     const lead = ph.stop ? String(ph.stop.lead).replace(/`/g, '') : '';
     phPrev.innerHTML = `<div class="pp-h"><i>шаг ${ph.id.slice(1)}</i><b>${esc(ph.stop ? ph.stop.title : ph.title)}</b></div>${lead ? `<p>${esc(lead)}</p>` : ''}` +
+      (ph.why ? `<p class="pp-w"><i>без этого</i> ${tick(ph.why.need)}</p>` : '') +
       (h.who ? `<dl class="how"><dt>кто</dt><dd>${esc(h.who)}</dd><dt>агент</dt><dd>${esc(h.agent)}</dd><dt>время</dt><dd>${esc(h.time)}</dd></dl>` : '') +
       (files.length ? `<div class="pp-f"><b>+${files.length}</b> в папке · ${Object.entries(by).map(([d, n]) => `${esc(d)} ${n}`).join(' · ')}</div>` : '') +
       `<div class="pp-k">${S.phase === 'done' || i < cur ? '✓ пройден · клик – вернуться к шагу' : i === cur ? 'идёт сейчас' : 'клик – перейти к шагу'}</div>`;
@@ -588,6 +589,13 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const L = LAYERS[SEC_AT[id]] || LAYERS.section;
     return `<div class="sc"><span class="sc-g">${L.glyph}</span><div><b>${esc(s.title)}</b><code>${esc(id)}/</code><p>${esc(s.what)}</p></div></div>
       <ol class="rq">${s.requests.map((r, i) => `<li style="animation-delay:${0.2 + i * 0.7}s"><i>${RQ[i]}</i><span>${esc(r)}</span></li>`).join('')}</ol>`;
+  }
+  // why this step: what breaks without it, what it gives, one number with a source, where to start at home
+  const tick = (t) => esc(t).replace(/`([^`]+)`/g, '<code>$1</code>');
+  function whyHtml(w) {
+    return w ? `<dl class="why"><dt>без этого</dt><dd>${tick(w.need)}</dd><dt>с этим</dt><dd>${tick(w.helps)}</dd>` +
+      `<dt>цифра</dt><dd class="f">${tick(w.fact)} <a class="src" href="${esc(w.url)}" target="_blank" rel="noopener">${esc(w.src)} ↗</a></dd>` +
+      `<dt>у себя</dt><dd>${tick(w.yours)}</dd></dl>` : '';
   }
   function howHtml(h) {
     return h ? `<dl class="how"><dt>кто</dt><dd>${esc(h.who)}</dd><dt>агент</dt><dd>${esc(h.agent)}</dd><dt>берём</dt><dd>${esc(h.takes)}</dd><dt>кладём</dt><dd>${esc(h.puts)}</dd><dt>время</dt><dd>${esc(h.time)}</dd></dl>` : '';
@@ -614,6 +622,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       if (askEl.dataset.key !== key) {
         askEl.dataset.key = key;
         askEl.innerHTML = (ph && ph.id ? `<div class="stp"><i>${ph.id.slice(1)}</i><b>${esc(ph.stop ? ph.stop.title : ph.title)}</b></div>` : '') +
+          (ph && ph.why ? `<div class="whyb"><span class="cap">зачем этот шаг</span>${whyHtml(ph.why)}</div>` : '') +
           (ph ? howHtml(ph.how) : '') +
           (ph && ph.ask ? `<div class="ak"><span class="cap">запрос агенту на этом шаге</span><p class="ak-q">${esc(ph.ask)}</p></div>` : '') +
           sessHtml(ph) +
@@ -920,6 +929,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     $('stTitle').textContent = ph.stop.title;
     $('stLead').innerHTML = mdInline(ph.stop.lead, idx);
     $('stPoints').innerHTML = (ph.stop.points || []).map((x) => `<li>${mdInline(x, idx)}</li>`).join('');
+    $('stWhy').hidden = !ph.why;
+    $('stWhy').innerHTML = ph.why ? `<b>зачем этот шаг</b>${whyHtml(ph.why)}` : '';
     const shown = files.filter((p) => S.files.has(p));
     const halt = ph.halt;
     $('stHalt').hidden = !halt;
@@ -936,7 +947,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     $('stOff').title = nxt ? 'закрыть карточку и остаться на этом шаге' : 'смотреть без карточек';
     $('stOff').onclick = nxt ? () => closeStop(false) : () => { setStops(false); closeStop(true); };
     stopOpen = id; onStopGo = go;
-    $('stop').hidden = false; $('stGo').focus();
+    $('stop').hidden = false; $('stGo').focus({ preventScroll: true }); document.querySelector('#stop .card').scrollTop = 0;
     return true;
   }
   // the folder at this moment: folders with their files, the ones of this phase marked

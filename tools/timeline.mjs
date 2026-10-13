@@ -147,7 +147,7 @@ export function buildTimeline(kitDir, answersOverride) {
     // an agent works in its own branch; a person merges it into main
     const body = (ph.sessions || []).map((x) => `${x.agent}: прочитал ${x.read}, создал ${x.created} · журнал ${x.path}`).join('\n');
     events.push({ at: t, type: 'commit', msg: ph.commit, phase: ph.id, branch: ph.branch || null, agentMsg: ph.agentCommit ? `${ph.agentCommit}\n\n${ph.ask ? `запрос: ${ph.ask}\n` : ''}${body}` : null, accepts: ph.accepts || null });
-    phases.push({ id: ph.id, title: ph.title, start, end: t, parallel: !!ph.parallel, stop: ph.stop || null, ask: ph.ask || null, how: ph.how || null,
+    phases.push({ id: ph.id, title: ph.title, start, end: t, parallel: !!ph.parallel, stop: ph.stop || null, ask: ph.ask || null, how: ph.how || null, why: ph.why || null,
       sessions: ph.sessions || null, branch: ph.branch || null, accepts: ph.accepts || null, agentCommit: ph.agentCommit || null });
     t += 600;
   }

@@ -782,3 +782,24 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent); outline-of
 .sess .se-c{margin-top:4px; font-family:var(--mono, ui-monospace, monospace); font-size:11px; color:var(--ink); overflow-wrap:anywhere}
 .sess .se-c i{color:var(--muted); font-style:normal}
 #stSess{margin-top:12px}
+
+/* зачем этот шаг: без этого · с этим · цифра с источником · у себя */
+dl.why{display:grid; grid-template-columns:72px minmax(0,1fr); gap:4px 12px; margin:6px 0 0; font-size:13px; line-height:1.45}
+dl.why dt{font-family:var(--mono); font-size:10px; letter-spacing:.06em; color:var(--muted); padding-top:2px}
+dl.why dd{margin:0}
+dl.why dd.f{border-left:2px solid var(--accent); padding-left:8px; font-weight:600}
+dl.why a.src{font-family:var(--mono); font-size:10.5px; font-weight:400; color:var(--muted); overflow-wrap:anywhere; text-decoration:none; border-bottom:1px dotted var(--muted)}
+dl.why a.src:hover{color:var(--accent); border-color:var(--accent)}
+dl.why code{background:var(--hair); padding:0 3px; font-size:12px}
+#stWhy{margin:12px 0 4px; padding:10px 12px; background:var(--paper); border-left:2px solid var(--accent)}
+#stWhy>b{display:block; font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:2px}
+.whyb{margin:10px 0; padding:8px 0 2px; border-top:1px dashed var(--soft)}
+.whyb dl.why{grid-template-columns:62px minmax(0,1fr); font-size:12px}
+#phPrev .pp-w{font-size:12px; line-height:1.4; margin:6px 0 0}
+#phPrev .pp-w i{font-style:normal; font-family:var(--mono); font-size:10px; color:var(--accent); margin-right:4px}
+/* with the why block the three points stay as one compact line */
+#stWhy:not([hidden]) + #stPoints{display:flex; flex-wrap:wrap; gap:4px 16px; border-top:none; margin:8px 0 6px}
+#stWhy:not([hidden]) + #stPoints li{border-bottom:none; padding:2px 0 2px 16px; font-size:12px; color:var(--muted)}
+#stop .st-ft{position:sticky; bottom:-14px; background:var(--bg); padding-bottom:4px; z-index:1}
+#setup .su-w{margin:4px 0 6px; font-size:12px; line-height:1.45}
+#setup .su-w i{font-style:normal; font-family:var(--mono); font-size:10px; color:var(--accent); margin-right:6px}
