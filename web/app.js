@@ -389,7 +389,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
         g.call(d3.drag().on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.2).restart(); d.fx = d.x; d.fy = d.y; })
           .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
           .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
-        g.on('click', (e, d) => (d.file ? openPreview(d.file.path) : d.afile ? openPreview(d.afile) : d.run ? openSession(d.run) : null))
+        g.on('click', (e, d) => (d.file ? openPreview(d.file.path) : d.afile ? openPreview(d.afile) : d.run ? openSession(d.run) : d.layer === 'ghost' && futureOf(d.key) ? openPreview(futureOf(d.key)) : null))
           .on('mouseenter', (e, d) => { hoverId = d.id; highlight(); })
           .on('mouseleave', () => { hoverId = null; highlight(); });
         return g;
@@ -953,6 +953,22 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   }
 
   const fileUrl = (p) => `/f/${p.split('/').map(encodeURIComponent).join('/')}`;
+  // a ghost is a file the build writes later: its card shows that future version, the step stays where it is
+  const futureFiles = new Map();
+  function fileAt(p) {
+    const f = S.files.get(p); if (f) return f;
+    const x = MODE === 'replay' && FUTURE.get(p);
+    if (!x || x.content == null) return null;
+    if (!futureFiles.has(p)) futureFiles.set(p, { ...parse(p, x.content), future: x.phase });
+    return futureFiles.get(p);
+  }
+  const stem = (s) => norm(bare(String(s).split('/').pop()).replace(/\.(md|html|json|ya?ml|canvas)$/, ''));
+  function futureOf(key) {
+    if (MODE !== 'replay') return null;
+    const k = stem(key);
+    for (const p of FUTURE.keys()) if (!S.files.has(p) && stem(p) === k) return p;
+    return null;
+  }
   // `photo:` in a card's frontmatter is a picture next to the card (../people/img/x.jpg): the local server gives it, a picked folder reads it
   const photoUrls = new Map();
   async function fsaBlob(rel) {
@@ -972,7 +988,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   function pvNote(t) { $('pvNote').textContent = t || ''; }
   function pvRender() {
     if (!PV.path || PV.kind !== 'file') return;
-    const f = S.files.get(PV.path);
+    const f = fileAt(PV.path);
     const editing = PV.mode === 'edit';
     const content = editing ? PV.buffer : (f ? f.content : '');
     const isHtml = PV.path.endsWith('.html'), isMd = /\.(md|txt|docx?|xlsx?|rtf)$/i.test(PV.path);
@@ -1024,7 +1040,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       `<div class="rc-l">${gh ? `<a href="${esc(gh)}" target="_blank" rel="noopener">открыть на GitHub ↗</a>` : '<span class="cap">только на этом компьютере</span>'}</div></div>`;
   }
   function openPreview(p) {
-    const f = S.files.get(p); if (!f) return;
+    const f = fileAt(p); if (!f) return;
     if (PV.mode === 'edit' && PV.buffer !== PV.base && PV.path !== p) pvNote(`правки в ${bare(base(PV.path))} не сохранены и сброшены`); else pvNote('');
     setKind('file');
     const idx0 = resolveIndex();
@@ -1041,7 +1057,9 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     $('pvLinks').innerHTML = `<div><b>→ ${out.length}</b>${out.length ? linkGroups(out) : ' –'}${miss.length ? `<span class="lg"><i>◌ нет файла ${miss.length}</i>${miss.slice(0, 8).map((t) => `<a class="miss">${esc(bare(t.split('/').pop()))}</a>`).join('')}</span>` : ''}</div><div><b>← ${back.length}</b>${back.length ? linkGroups(back) : ' –'}</div>`;
     PV.path = p; PV.mode = 'view'; PV.mtime = f.mtime; PV.escArmed = false;
     $('preview').hidden = false;
-    $('preview').classList.toggle('full', !!(PV.full && p.endsWith('.html')));
+    // a dashboard opens drawn and wide; Esc brings back the narrow card
+    $('preview').classList.toggle('full', !!((PV.full || p.startsWith('dashboards/')) && p.endsWith('.html')));
+    if (f.future) pvNote(`файла ещё нет: появится на шаге ${String(f.future).slice(1)}, так он будет выглядеть`);
     pvRender();
     pvLinks();
     select(p, true);
@@ -1056,7 +1074,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   // the open file changed on disk (agent, Obsidian, another editor)
   function pvSync() {
     if ($('preview').hidden || !PV.path || PV.kind !== 'file') return;
-    const f = S.files.get(PV.path);
+    const f = fileAt(PV.path);
     if (!f) { pvNote('файл удалён или переименован'); return; }
     if (PV.mode === 'edit') {
       if (f.content !== PV.base) {
@@ -1115,13 +1133,19 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     if (MODE === 'replay') return { base: 'https://github.com/ai-mindset-org/slp-harness', branch: 'main', prefix: 'kit/files/' };
     return null;
   }
+  // the same names as tools/export-tools.mjs: the public copy of each dashboard lives in tools/<slug>.html
+  const TOOL_PAGES = { 'карта конкурентов': 'karta', 'прайсинг': 'praising', 'граф гостей': 'gosti', 'загрузка': 'zagruzka', 'радар пабликов': 'radar' };
   function pvLinks() {
+    const dash = PV.path && /^dashboards\/.*\.html$/.test(PV.path);
+    const slug = dash && TOOL_PAGES[bare(base(PV.path))];
+    const tab = !dash ? '' : MODE === 'replay' && slug ? `tools/${slug}.html` : MODE === 'live' && SESSION && !FSA ? fileUrl(PV.path) : '';
+    $('pvTab').hidden = !tab; if (tab) $('pvTab').href = tab;
     const r = remoteOf();
     $('pvGh').hidden = !r;
     if (r) $('pvGh').href = `${r.base}/blob/${r.branch}/${(r.prefix + (MODE === 'replay' ? finalPath(PV.path) : PV.path)).split('/').map(encodeURIComponent).join('/')}`;
   }
   $('pvDl').onclick = () => {
-    const f = S.files.get(PV.path); if (!f) return;
+    const f = fileAt(PV.path); if (!f) return;
     const url = URL.createObjectURL(new Blob([PV.mode === 'edit' ? PV.buffer : f.content], { type: 'text/plain;charset=utf-8' }));
     const a = document.createElement('a'); a.href = url; a.download = PV.path.split('/').pop(); document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
@@ -1270,15 +1294,24 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       bar.addEventListener('pointermove', (e) => { if (drag) at(e); });
       bar.addEventListener('pointerup', () => { drag = false; });
     }
+    // ← → step through the build: each arrow lands on the end of a step with its card open
+    const stepBy = (dir) => {
+      const open = stopOpen ? sc.phases.findIndex((x) => x.id === stopOpen) : -1;
+      const i = Math.max(0, sc.phases.findLastIndex((x) => x.start <= R.t));
+      const done = R.t >= sc.phases[i].end - 50;
+      const to = open >= 0 ? open + dir : dir > 0 ? (done ? i + 1 : i) : (done ? i - 1 : i - 1);
+      if (to < 0 || to >= sc.phases.length) return;
+      if (stopOpen) closeStop(false);
+      jumpToPhase(to);
+    };
     window.addEventListener('keydown', (e) => {
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable || e.metaKey || e.ctrlKey || e.altKey || !$('intro').hidden) return;
+      if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') { e.preventDefault(); stepBy(e.code === 'ArrowRight' ? 1 : -1); return; }
       if (stopOpen) {
-        if (['Space', 'Enter', 'ArrowRight'].includes(e.code)) { e.preventDefault(); closeStop(true); }
+        if (['Space', 'Enter'].includes(e.code)) { e.preventDefault(); closeStop(true); }
         return;
       }
       if (e.code === 'Space') { e.preventDefault(); btnPlay.click(); }
-      if (e.code === 'ArrowRight') nextPhase();
-      if (e.code === 'ArrowLeft') prevPhase();
       if (e.key === 's') setStops(!STOPS);
       if (e.code === 'End') { seek(sc.duration); setPlay(false); }
       if (e.key === 'r') { seek(0); setPlay(true); }
