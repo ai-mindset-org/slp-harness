@@ -973,6 +973,22 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     for (const p of FUTURE.keys()) if (!S.files.has(p) && stem(p) === k) return p;
     return null;
   }
+  // the live state cuts every file at 20 000 signs; a longer one opens whole, read from /f/
+  const fullTexts = new Map();
+  function fullText(f) {
+    const cut = f.content || '';
+    if (MODE !== 'live' || FSA || f.future || cut.length < 19990) return cut;
+    const c = fullTexts.get(f.path);
+    if (c && c.mtime === f.mtime) return c.text ?? cut;
+    fullTexts.set(f.path, { mtime: f.mtime, text: null });
+    fetch(`${fileUrl(f.path)}?v=${f.mtime || 0}`, { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => {
+      const x = fullTexts.get(f.path);
+      if (t == null || !x || x.mtime !== f.mtime) return;
+      x.text = t;
+      if (PV.path === f.path && PV.kind === 'file' && PV.mode !== 'edit') { pvMeta(fileAt(f.path) || f); pvRender(); }
+    }).catch(() => { /* stays cut */ });
+    return cut;
+  }
   // `photo:` in a card's frontmatter is a picture next to the card (../people/img/x.jpg): the local server gives it, a picked folder reads it
   const photoUrls = new Map();
   async function fsaBlob(rel) {
@@ -994,7 +1010,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     if (!PV.path || PV.kind !== 'file') return;
     const f = fileAt(PV.path);
     const editing = PV.mode === 'edit';
-    const content = editing ? PV.buffer : (f ? f.content : '');
+    const content = editing ? PV.buffer : (f ? fullText(f) : '');
     const isHtml = PV.path.endsWith('.html'), isMd = /\.(md|txt|docx?|xlsx?|rtf)$/i.test(PV.path);
     const rich = (isHtml || isMd) && PV.mode !== 'raw';
     $('pvEditor').hidden = !editing;
@@ -1054,9 +1070,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const miss = [...new Set(f.links.filter((t) => !idx.get(t)))];
     const back = [...S.files.values()].filter((g) => g.path !== p && g.links.some((t) => idx.get(t) === p)).map((g) => g.path);
     $('pvTitle').textContent = `${LAYERS[f.layer].glyph} ${f.title}`;
-    const text = f.content || '';
-    const words = (text.replace(/^---\n[\s\S]*?\n---/, '').match(/[\p{L}\p{N}]+/gu) || []).length;
-    $('pvPath').innerHTML = `<span>${esc(f.path)}</span><span>${LAYERS[f.layer].label}</span><span>${text.split('\n').length} строк · ${words} слов</span>${f.mtime ? `<span>изменён ${ago(f.mtime)}</span>` : ''}`;
+    pvMeta(f);
     $('pvLinks').hidden = false;
     $('pvLinks').innerHTML = `<div><b>→ ${out.length}</b>${out.length ? linkGroups(out) : ' –'}${miss.length ? `<span class="lg"><i>◌ нет файла ${miss.length}</i>${miss.slice(0, 8).map((t) => `<a class="miss">${esc(bare(t.split('/').pop()))}</a>`).join('')}</span>` : ''}</div><div><b>← ${back.length}</b>${back.length ? linkGroups(back) : ' –'}</div>`;
     PV.path = p; PV.mode = 'view'; PV.mtime = f.mtime; PV.escArmed = false;
@@ -1067,6 +1081,11 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     pvRender();
     pvLinks();
     select(p, true);
+  }
+  function pvMeta(f) {
+    const text = fullText(f);
+    const words = (text.replace(/^---\n[\s\S]*?\n---/, '').match(/[\p{L}\p{N}]+/gu) || []).length;
+    $('pvPath').innerHTML = `<span>${esc(f.path)}</span><span>${LAYERS[f.layer].label}</span><span>${text.split('\n').length} строк · ${words} слов</span>${f.mtime ? `<span>изменён ${ago(f.mtime)}</span>` : ''}`;
   }
   function closePreview() {
     if (PV.mode === 'edit' && PV.buffer !== PV.base && !PV.escArmed) { PV.escArmed = true; pvNote('есть несохранённые правки: ⌘S – сохранить, Esc ещё раз – закрыть без них'); return; }
@@ -1097,7 +1116,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   $('pvEdit').onclick = () => {
     if (MODE !== 'live' || (!SESSION && !FSA)) return;
     const f = S.files.get(PV.path); if (!f) return;
-    if (f.content.length >= 20000) { pvNote('файл длиннее 20 000 знаков: правь его в Obsidian или в редакторе'); return; }
+    // the state may have cut it a few signs short of 20 000 after hiding secrets
+    if (f.content.length >= 19990) { pvNote('файл длиннее 20 000 знаков: правь его в Obsidian или в редакторе'); return; }
     PV.mode = 'edit'; PV.buffer = PV.base = f.content; $('pvEditor').value = f.content; pvNote('правка с живым превью · ⌘S сохраняет и коммитит'); pvRender(); $('pvEditor').focus();
   };
   let pvTimer = null;
