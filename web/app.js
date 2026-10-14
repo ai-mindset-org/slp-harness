@@ -740,6 +740,13 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const last = META.phases.length ? META.phases[META.phases.length - 1].id.slice(1) : '10';
     document.getElementById('phaseLabel').textContent = NO_STEPS ? (SCENARIO_KIT ? 'папка группы' : 'своя папка') : S.phase === 'done' ? `шаг ${last} из ${last} · готово, папка собрана` : ph ? `шаг ${ph.id.slice(1)} из ${last} · ${ph.title}` : `шаг 00 из ${last} · пустая папка`;
     document.querySelector('#bar i').style.width = `${Math.min(100, progress * 100)}%`;
+    docTitle(ph);
+  }
+  // three tabs of the same engine must not look like duplicates: the title says which mode and which folder
+  function docTitle(ph) {
+    const nm = (d) => ({ 'lunnaya-kamenka': 'баня', 'slp26-community': "SLP'26" })[d] || d;
+    const t = FSA ? `своя папка · ${FSA.name}` : MODE === 'live' && SESSION ? `живая · ${nm(SESSION.dir.split('/').filter(Boolean).pop())}` : `${ph && !NO_STEPS ? `шаг ${ph.id.slice(1)} · ` : ''}история · ${SCENARIO_KIT ? "SLP'26" : 'Лунная каменка'}`;
+    if (document.title !== `${t} · SLP harness`) document.title = `${t} · SLP harness`;
   }
   // a preview of every step: what it is, who does it, what lands in the folder
   const phPrev = document.getElementById('phPrev');
@@ -1898,7 +1905,20 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   const hm = (ms) => new Date(ms).toTimeString().slice(0, 5);
   const ago = (ms) => { const s = Math.round((Date.now() - ms) / 1000); return s < 60 ? 'только что' : s < 3600 ? `${Math.round(s / 60)} мин назад` : s < 86400 ? `${Math.round(s / 3600)} ч назад` : new Date(ms).toLocaleDateString('ru'); };
   const runWho = (r) => [LANE_META[r.role] && LANE_META[r.role].title, r.skill].filter(Boolean).join(' · ') || String(r.prompt || '').replace(/\s+/g, ' ').slice(0, 44) || r.id;
+  // the show runs several tabs side by side: the title names the mode, the folder and the step
+  const FOLDER_TITLE = { 'lunnaya-kamenka': 'баня', 'slp26-community': "SLP'26" };
+  function setTitle(name) {
+    const ph = /^p\d\d$/.test(qs.get('phase') || '') ? `шаг ${qs.get('phase').slice(1)} · ` : '';
+    const dir = SESSION && SESSION.dir ? SESSION.dir.replace(/\/+$/, '').split('/').pop() : '';
+    const what = MODE === 'replay' ? `история · ${SCENARIO_KIT ? "SLP'26" : 'Лунная каменка'}`
+      : TEAM ? `команда · ${name || 'папка'}`
+      : FSA ? `своя папка · ${FSA.name || name}`
+      : SESSION ? `живая · ${FOLDER_TITLE[dir] || dir || name}`
+      : 'своя папка';
+    document.title = `${ph}${what} · SLP harness`;
+  }
   function setBrand(name) {
+    setTitle(name);
     const h = document.querySelector('.brand h1'); if (h && name) h.textContent = `SLP harness · ${name}`;
     const p = document.querySelector('.brand p'); if (p && name) p.textContent = SCENARIO_KIT ? 'папка группы · только на этом компьютере' : 'своя папка на этом компьютере';
   }
@@ -2169,5 +2189,6 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   }
 
   resize();
+  setTitle();
   if (MODE === 'replay') startReplay(); else startLive();
 })();
