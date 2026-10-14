@@ -737,7 +737,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     }
     [...box.children].forEach((el, i) => { const cls = i < cur || S.phase === 'done' ? 'ph done' : i === cur ? 'ph now' : 'ph'; if (el.className !== cls) el.className = cls; });
     const ph = META.phases[cur];
-    document.getElementById('phaseLabel').textContent = NO_STEPS ? (SCENARIO_KIT ? 'папка группы' : 'своя папка') : S.phase === 'done' ? 'готово · папка собрана' : ph ? `шаг ${ph.id.slice(1)} · ${ph.title}` : 'шаг 00 · пустая папка';
+    const last = META.phases.length ? META.phases[META.phases.length - 1].id.slice(1) : '10';
+    document.getElementById('phaseLabel').textContent = NO_STEPS ? (SCENARIO_KIT ? 'папка группы' : 'своя папка') : S.phase === 'done' ? `шаг ${last} из ${last} · готово, папка собрана` : ph ? `шаг ${ph.id.slice(1)} из ${last} · ${ph.title}` : `шаг 00 из ${last} · пустая папка`;
     document.querySelector('#bar i').style.width = `${Math.min(100, progress * 100)}%`;
   }
   // a preview of every step: what it is, who does it, what lands in the folder
