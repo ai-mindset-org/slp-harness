@@ -96,7 +96,7 @@ git show agent/secretary-03    # что именно сделал агент н�
 | [прайсинг](https://slp-ai-business.lab.aimindset.org/sim/tools/praising.html) | сколько брать за конкретный слот и где наш прайс против соседей | управляющий | конкуренты по понедельникам, недельный срез |
 | [граф гостей](https://slp-ai-business.lab.aimindset.org/sim/tools/gosti.html) | какому сегменту через какой канал и с каким сообщением продавать | маркетолог | исследователь раз в месяц |
 | [загрузка](https://slp-ai-business.lab.aimindset.org/sim/tools/zagruzka.html) | какие слоты стоят пустыми и сколько денег недобираем | управляющий | недельный срез |
-| [радар пабликов](https://slp-ai-business.lab.aimindset.org/sim/tools/radar.html) | где разместиться в Москве и с чего начать | маркетолог, владелец | радар пабликов раз в месяц |
+| [радар пабликов](https://slp-ai-business.lab.aimindset.org/sim/?phase=p09) · в симуляторе на шаге 09 | где разместиться в Москве и с чего начать | маркетолог, владелец | радар пабликов раз в месяц |
 
 Исходники – html-файлы в [dashboards/](kit/files/dashboards/): открываются в браузере прямо из папки.
 
