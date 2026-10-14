@@ -32,7 +32,7 @@
 <main id="grid">
   <section id="colL" class="panel">
     <h2 class="fold-h" data-fold="tree"><span>01 · папка</span><em id="fileCount">0</em></h2>
-    <div id="folderBar" class="liveonly"><div class="fb-path" id="fbPath">–</div><div class="fb-git" id="fbGit">git: –</div><div class="fb-act"><button id="openVault" class="srvonly" title="открыть всю папку в Obsidian">Obsidian ↗</button><button id="openFinder" class="srvonly" title="показать папку в Finder">Finder ↗</button><button id="pickOther" class="srvonly" title="окно выбора откроется в ~/harness">выбрать папку</button><button id="newFileBtn" class="editonly" title="создать файл в папке">+ файл</button><button id="forkBtn" class="srvonly" title="копия папки с историей: пробовать без риска">форк</button><button id="pickAgain" class="fsaonly" title="выбрать другую папку">другая папка</button></div><form id="newFile" hidden><input id="nfPath" placeholder="rules/{rule} моё правило.md" autocomplete="off"><button type="submit">создать</button></form><div id="forkBox" hidden></div></div>
+    <div id="folderBar" class="liveonly"><div class="fb-path" id="fbPath">–</div><div class="fb-git" id="fbGit">git: –</div><div class="fb-act"><button id="openVault" class="srvonly" title="открыть всю папку в Obsidian">Obsidian ↗</button><button id="openFinder" class="srvonly" title="показать папку в Finder">Finder ↗</button><button id="openTerm" class="srvonly" title="Терминал macOS в этой папке">терминал ↗</button><button id="pickOther" class="srvonly" title="окно выбора откроется в ~/harness">выбрать папку</button><button id="newFileBtn" class="editonly" title="создать файл в папке">+ файл</button><button id="forkBtn" class="srvonly" title="копия папки с историей: пробовать без риска">форк</button><button id="pickAgain" class="fsaonly" title="выбрать другую папку">другая папка</button></div><form id="newFile" hidden><input id="nfPath" placeholder="rules/{rule} моё правило.md" autocomplete="off"><button type="submit">создать</button></form><div id="forkBox" hidden></div></div>
     <div id="tree" class="scroll"></div>
     <h2 class="sub fold-h" data-fold="commits"><span>02 · коммиты</span><em id="commitCount">0</em></h2>
     <ol id="commits"></ol>
@@ -73,7 +73,7 @@
 
   <section id="colR">
     <div class="panel" id="askP"><h2 class="fold-h" data-fold="ask"><span>04 · шаг</span><em id="askLevel"></em></h2><div id="ask"></div></div>
-    <div class="panel" id="anketaP"><h2 class="fold-h" data-fold="qa"><span>анкета</span><em id="qaCount">0/7</em></h2><dl id="qa"></dl></div>
+    <div class="panel" id="anketaP"><h2 class="fold-h" data-fold="qa" title="вопросы анкеты владельцу и его ответы · клик – раскрыть"><span>анкета владельца</span><em id="qaCount">0/7</em></h2><p class="cap" id="qaWhy">семь вопросов владельцу на шаге 01 и его ответы голосом: из них собран паспорт комплекса</p><dl id="qa"></dl></div>
     <div class="panel" id="lanesP"><h2 class="fold-h" data-fold="lanes"><span>агенты · люди</span><em id="laneCount">0</em></h2><div id="lanes"></div><form id="askAgent" class="srvonly" hidden><input id="aaQ" autocomplete="off" spellcheck="false" placeholder="запрос агенту в этой папке"><button type="submit">спросить</button></form><div id="aaOut" class="srvonly" hidden></div></div>
     <div class="panel" id="dashP">
       <div id="tabs"><button class="on" data-tab="dash">05 · срез</button><button data-tab="tools">инструменты</button><button data-tab="console" class="liveonly">консоль</button><button data-tab="sessions">сессии</button><button class="fold-t" data-fold="tabBody" title="свернуть блок">▾</button></div>
@@ -95,6 +95,7 @@
             </div>
             <div class="crow"><button type="submit">запустить</button><span id="cStatus" class="cap">запуск отправляет задачу выбранному AI-провайдеру; используются ваши доступы · сервер сотника: <b id="consoleHost">–</b></span></div>
             <div id="cMsg" class="cap"></div>
+            <div class="cterm"><span class="cap">сессия в своём терминале, в этой папке:</span><div class="cmd"><code id="cmdHere">–</code><button type="button" data-copy="cmdHere">копировать</button><button type="button" id="openTerm2">открыть терминал</button></div></div>
           </form>
           <div id="runs"></div>
         </div>

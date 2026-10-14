@@ -540,6 +540,7 @@ function openOnMac({ path: rel, app }) {
   const run = (a) => spawn('open', a, { stdio: 'ignore', detached: true }).unref();
   if (app === 'finder') { run(['-R', p.full]); return { ok: true, hint: 'показано в Finder' }; }
   if (app === 'default') { run([p.full]); return { ok: true, hint: 'открыто в приложении по умолчанию' }; }
+  if (app === 'terminal') { run(['-a', 'Terminal', dir]); return { ok: true, hint: 'Терминал открыт в папке: claude или codex – и работай' }; }
   if (app === 'obsidian') {
     const vault = obsidianVaults().find((v) => p.full === v || p.full.startsWith(v + path.sep));
     if (vault) { run([`obsidian://open?path=${encodeURIComponent(p.full)}`]); return { ok: true, hint: `открыто в Obsidian · vault ${path.basename(vault)}` }; }

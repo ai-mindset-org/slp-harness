@@ -920,3 +920,36 @@ body.nosteps #tl,body.nosteps #narr,body.nosteps #phPrev{display:none !important
 #graph .node.lx text{visibility:hidden}
 #graph.hovering .node.lx:not(.dim) text,#graph .node.lx.sel text{visibility:visible}
 #graph .node.ghost{opacity:.55}
+/* a light label on every node, the important ones dark; with a filter every hit is labelled dark */
+#graph .node text{fill:#9d9d9d; font-weight:400}
+#graph.dense .node text{display:block; font-size:calc(7.5px * var(--inv, 1))}
+#graph .node.L-role text,#graph .node.L-agentrole text,#graph .node.agent text,#graph .node.L-skill text,#graph .node.L-raw text{fill:#1f1f1f; font-size:calc(8.5px * var(--inv, 1))}
+#graph .node.L-hub text,#graph .node.L-section text,#graph .node.main text{fill:#0a0a0a; font-size:calc(11px * var(--inv, 1))}
+#graph .node.sel text,body:not(.live) #graph .node.fresh text{fill:#0a0a0a}
+#graph .node.ghost text{display:none}
+#graph.hovering .node:not(.dim) text{fill:#0a0a0a}
+#graph.filtering .node:not(.faded) text{display:block; visibility:visible; fill:#0a0a0a}
+#graph.filtering .node.faded text{display:none}
+/* thin light lines at any zoom */
+#graph .link{stroke-width:.7; vector-effect:non-scaling-stroke}
+#graph .link.wiki{stroke:#dadada}
+#graph.dense .link.wiki{stroke:#e6e6e6}
+#graph .link.agent{stroke-width:1}
+#graph .link.hot{stroke:var(--ink); stroke-width:1.1}
+/* the owner's questionnaire: folded to its title after step 01, opens on click */
+#anketaP.compact.open #qa{display:grid}
+#qaWhy{margin:0 0 6px}
+#anketaP.compact:not(.open) #qaWhy,body.fold-qa #qaWhy{display:none}
+/* people grouped by role: a folded group per role, its card one click away */
+.people.grouped{display:block}
+.people .pg{border-top:1px solid var(--hair); padding:3px 0}
+.people .pg summary{cursor:pointer; font-size:12px; display:flex; gap:6px; align-items:baseline; list-style:none}
+.people .pg summary::before{content:'▸'; color:var(--muted); font-size:10px}
+.people .pg[open] summary::before{content:'▾'}
+.people .pg summary em{font-style:normal; color:var(--muted); font-size:11px}
+.people .pg summary a.pr{margin-left:auto; font-size:10.5px; color:var(--muted); text-decoration:none; cursor:pointer}
+.people .pg summary a.pr:hover{color:var(--ink)}
+.people .pgl{display:flex; flex-wrap:wrap; gap:4px 6px; padding:4px 0 2px}
+.people .pgl.lone .cap{flex-basis:100%}
+#graph .node.person text{fill:#9d9d9d; font-size:calc(7.5px * var(--inv, 1))}
+#graph .node.person path{opacity:.8}

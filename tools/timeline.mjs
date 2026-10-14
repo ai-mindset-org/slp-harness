@@ -70,6 +70,8 @@ export function buildTimeline(kitDir, answersOverride) {
   const rawName = new Map();
   for (const ph of manifest.phases) for (const r of ph.rename || []) rawName.set(r.to, r.from);
 
+  // before the naming rule a step points at the file under its raw name
+  const shownPath = (st) => (st.path && !named && (st.early || rawName.get(st.path))) || st.path || null;
   const fileEvent = (at, st, lane) => {
     const content = readSrc(kitDir, st, answers);
     const raw = st.early || rawName.get(st.path);
@@ -95,9 +97,9 @@ export function buildTimeline(kitDir, answersOverride) {
         if (st.lane) {
           const meta = manifest.lanes[st.lane] || { title: st.lane, skill: '' };
           used.add(st.lane);
-          events.push({ at: t, type: 'lane', lane: st.lane, status: 'running', title: meta.title, skill: meta.skill, target: st.path || null, note: st.note });
+          events.push({ at: t, type: 'lane', lane: st.lane, status: 'running', title: meta.title, skill: meta.skill, target: shownPath(st), note: st.note });
         }
-        if (st.note) events.push({ at: t, type: 'narrate', text: st.note, path: st.path || null, lane: st.lane });
+        if (st.note) events.push({ at: t, type: 'narrate', text: st.note, path: shownPath(st), lane: st.lane });
         if (type === 'file') {
           events.push(fileEvent(t + Math.min(1200, st.dwell * 0.35), st, st.lane));
         } else if (type === 'answers') {
