@@ -1167,6 +1167,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const slug = dash && TOOL_PAGES[bare(base(PV.path))];
     const tab = !dash ? '' : MODE === 'replay' && slug ? `tools/${slug}.html` : MODE === 'live' && SESSION && !FSA ? fileUrl(PV.path) : '';
     $('pvTab').hidden = !tab; if (tab) $('pvTab').href = tab;
+    // the local server opens files on this computer; a folder picked in the browser and the site have no such door
+    $('pvApp').hidden = $('pvFinder').hidden = !(MODE === 'live' && SESSION && !FSA);
     const r = remoteOf();
     $('pvGh').hidden = !r;
     if (r) $('pvGh').href = `${r.base}/blob/${r.branch}/${(r.prefix + (MODE === 'replay' ? finalPath(PV.path) : PV.path)).split('/').map(encodeURIComponent).join('/')}`;
