@@ -832,6 +832,7 @@ body.nosteps #tl,body.nosteps #narr,body.nosteps #phPrev{display:none !important
 
 /* роли: человек и агент */
 .rolecard{border:1px solid var(--ink); padding:9px 11px; margin:0 0 12px; display:grid; gap:7px; background:var(--paper)}
+.pvphoto{display:block; width:112px; height:112px; object-fit:cover; border:1px solid var(--ink); margin:0 0 12px}
 .rolecard.agent{border-left:3px solid var(--accent)}
 .rc-h{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
 .rc-h .rc-g{font-size:16px; line-height:1}

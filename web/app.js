@@ -127,7 +127,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     cluster: 'cluster', person: 'person', participant: 'person', guest: 'guest', speaker: 'guest', hub: 'hub' };
   const layerAt = (p) => (S.files.get(p) || {}).layer || layerOf(p);
   const isRole = (l) => l === 'role' || l === 'agentrole';
-  // `kind: human | agent` in a role's frontmatter; older folders write «агент»
+  // `kind: human | agent` in a role's frontmatter, in Russian «человек | агент»; no kind = a person
   const isAgentKind = (fm) => /^(agent|агент)$/i.test(String(fm.kind || '').trim());
   // '../rules/{rule} x.md' seen from 'asks/a.md' → 'rules/{rule} x.md'
   function joinPath(from, rel) {
@@ -861,6 +861,22 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   }
 
   const fileUrl = (p) => `/f/${p.split('/').map(encodeURIComponent).join('/')}`;
+  // `photo:` in a card's frontmatter is a picture next to the card (../people/img/x.jpg): the local server gives it, a picked folder reads it
+  const photoUrls = new Map();
+  async function fsaBlob(rel) {
+    try { const parts = rel.split('/'); let d = FSA; for (const seg of parts.slice(0, -1)) d = await d.getDirectoryHandle(seg); return URL.createObjectURL(await (await d.getFileHandle(parts[parts.length - 1])).getFile()); } catch { return ''; }
+  }
+  function photoHtml(f) {
+    const ph = String(f.fm.photo || '');
+    if (!/\.(jpe?g|png|webp)$/i.test(ph) || /^[a-z]+:/i.test(ph) || (!FSA && MODE !== 'live')) return '';
+    const rel = joinPath(f.path, ph);
+    const img = (src) => `<img class="pvphoto" alt="${esc(f.title)}" src="${esc(src)}" onerror="this.remove()">`;
+    if (!FSA) return img(fileUrl(rel));
+    if (photoUrls.has(rel)) return photoUrls.get(rel) ? img(photoUrls.get(rel)) : '';
+    photoUrls.set(rel, '');
+    fsaBlob(rel).then((u) => { photoUrls.set(rel, u); if (u && PV.path === f.path) pvRender(); });
+    return '';
+  }
   function pvNote(t) { $('pvNote').textContent = t || ''; }
   function pvRender() {
     if (!PV.path || PV.kind !== 'file') return;
@@ -874,7 +890,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     $('pvMd').hidden = !(rich && isMd);
     $('pvFrame').hidden = !(rich && isHtml);
     if (!rich && !editing) $('pvBody').textContent = content;
-    if (rich && isMd) $('pvMd').innerHTML = (f && isRole(f.layer) && !editing ? roleCard(f) : '') + mdRender(content);
+    if (rich && isMd) $('pvMd').innerHTML = (f && !editing ? photoHtml(f) : '') + (f && isRole(f.layer) && !editing ? roleCard(f) : '') + mdRender(content);
     if (rich && isHtml) {
       const frame = $('pvFrame');
       if (MODE === 'live' && !FSA && !editing) {
@@ -1394,7 +1410,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   });
   async function setFolder(h) {
     try { if ((await h.queryPermission({ mode: 'readwrite' })) !== 'granted' && (await h.requestPermission({ mode: 'readwrite' })) !== 'granted') return; } catch { /* read-only is fine */ }
-    FSA = h; META.answers = {}; fsaCache.clear(); reset(); nodeById.clear(); gFx.selectAll('*').remove(); markDirty();
+    FSA = h; META.answers = {}; fsaCache.clear(); photoUrls.clear(); reset(); nodeById.clear(); gFx.selectAll('*').remove(); markDirty();
     document.body.classList.add('fsa'); document.body.classList.remove('nosrc');
     $('connect').hidden = true; $('liveHint').hidden = true; $('empty').style.opacity = 0;
     idb('readwrite', (st) => st.put(h, 'last'));
