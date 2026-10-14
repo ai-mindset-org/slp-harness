@@ -76,8 +76,9 @@
     <div class="panel" id="anketaP"><h2 class="fold-h" data-fold="qa" title="вопросы анкеты владельцу и его ответы · клик – раскрыть"><span>анкета владельца</span><em id="qaCount">0/7</em></h2><p class="cap" id="qaWhy">семь вопросов владельцу на шаге 01 и его ответы голосом: из них собран паспорт комплекса</p><dl id="qa"></dl></div>
     <div class="panel" id="lanesP"><h2 class="fold-h" data-fold="lanes"><span>агенты · люди</span><em id="laneCount">0</em></h2><div id="lanes"></div><form id="askAgent" class="srvonly" hidden><input id="aaQ" autocomplete="off" spellcheck="false" placeholder="запрос агенту в этой папке"><button type="submit">спросить</button></form><div id="aaOut" class="srvonly" hidden></div></div>
     <div class="panel" id="dashP">
-      <div id="tabs"><button class="on" data-tab="dash">05 · срез</button><button data-tab="tools">инструменты</button><button data-tab="console" class="liveonly">консоль</button><button data-tab="sessions">сессии</button><button class="fold-t" data-fold="tabBody" title="свернуть блок">▾</button></div>
+      <div id="tabs"><button data-tab="hod" id="hodTab" title="каждый шаг как разговор: кто просит, что агент читает и пишет, что отвечает">ход</button><button class="on" data-tab="dash">05 · срез</button><button data-tab="tools">инструменты</button><button data-tab="console" class="liveonly">консоль</button><button data-tab="sessions">сессии</button><button class="fold-t" data-fold="tabBody" title="свернуть блок">▾</button></div>
       <div id="tabBody">
+        <div class="tabpane" data-tab="hod" hidden><div id="hod"></div></div>
         <div class="tabpane" data-tab="dash"><div id="metrics"></div><div id="coverage"></div></div>
         <div class="tabpane" data-tab="tools" hidden><div id="tools"></div></div>
         <div class="tabpane" data-tab="sessions" hidden><div id="sessions"></div></div>

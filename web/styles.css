@@ -954,3 +954,23 @@ body.nosteps #tl,body.nosteps #narr,body.nosteps #phPrev{display:none !important
 #graph .node.person text{fill:#9d9d9d; font-size:calc(7.5px * var(--inv, 1))}
 #graph .node.person path{opacity:.8}
 .md a.wl.miss.fut{cursor:pointer; color:var(--ink)}
+
+/* ход: each step as a short conversation – the human asks on the left, the agent answers on the right */
+#hod{display:flex; flex-direction:column; gap:10px; padding:6px 2px 10px}
+#hod .hd-step{display:flex; flex-direction:column; gap:5px; opacity:.62}
+#hod .hd-step.now,#hod .hd-step:last-child{opacity:1}
+#hod .hd-h{font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); border-bottom:1px dashed var(--soft); padding-bottom:3px}
+#hod .hd-step.now .hd-h{color:var(--accent)}
+#hod .bub{max-width:88%; border:1px solid var(--soft); padding:5px 8px; font-size:11.5px; line-height:1.45; background:var(--bg)}
+#hod .bub b{display:block; font-size:10px; font-weight:500; letter-spacing:.06em; color:var(--muted); margin-bottom:2px}
+#hod .bub p{margin:0}
+#hod .bub p+p{margin-top:4px}
+#hod .bub.hum{align-self:flex-start; border-color:var(--ink)}
+#hod .bub.ag{align-self:flex-end; background:var(--paper)}
+#hod .hd-step.now .bub.hum{border-left:3px solid var(--accent)}
+#hod .chips{display:flex; flex-wrap:wrap; gap:3px; margin-top:2px}
+#hod .chips a,#hod .hd-dash a{border:1px solid var(--soft); padding:0 5px; font-size:10.5px; cursor:pointer; color:var(--ink); text-decoration:none; background:var(--bg)}
+#hod .chips a:hover,#hod .hd-dash a:hover{border-color:var(--ink)}
+#hod .chips .more{font-size:10.5px; color:var(--muted); padding:0 3px}
+#hod .hd-q{color:var(--ink); font-weight:500}
+#hod code{font-size:10.5px; background:var(--hair); padding:0 3px}

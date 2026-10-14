@@ -1246,9 +1246,66 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   ['stFiles', 'stTree', 'stSess'].forEach((id) => $(id).addEventListener('click', (e) => { const a = e.target.closest('a[data-p]'); if (a) { closeStop(false); openPreview(a.dataset.p); } }));
   $('stopsBtn').onclick = () => setStops(!STOPS);
 
+  // ---------- dashboards: what each one shows and who looks, from dashboards/README.md; the step it appeared on ----------
+  const DASH_ICON = [['карта конкурентов', '⌖'], ['прайсинг', '₽'], ['граф гостей', '⋈'], ['загрузка', '▤'], ['радар пабликов', '◎'], ['неделя', '▦'], ['счёт часов', '◷']];
+  const dashIcon = (p) => (DASH_ICON.find(([k]) => base(p).includes(k)) || [null, '✚'])[1];
+  function dashMeta() {
+    const f = S.files.get('dashboards/README.md') || FUTURE.get('dashboards/README.md'); const t = (f && f.content) || '';
+    const out = new Map();
+    for (const m of t.matchAll(/^- \[([^\]]+)\]\(<?([^)>]+?)>?\) – (.+)$/gm)) {
+      const [show, ...rest] = m[3].split(' · '); const path = relPath('dashboards/README.md', m[2]);
+      out.set(path, { path, name: m[1], show: show.trim(), who: rest.join(' · ').trim() });
+    }
+    return out;
+  }
+  function stepOf(p) {
+    if (MODE === 'replay') { const x = FUTURE.get(finalPath(p)); if (x && x.phase) return x.phase; }
+    for (const [id, set] of Object.entries(PHASE_FILES)) if (set.has(p)) return id;
+    return null;
+  }
+
+  // ---------- «ход»: every step as a short conversation from the scenario and the session journals ----------
+  const relPath = (from, href) => { const parts = from.split('/').slice(0, -1); for (const s of href.split('/')) { if (s === '..') parts.pop(); else if (s && s !== '.') parts.push(s); } return parts.join('/'); };
+  function readOf(sessPath) {
+    const x = S.files.get(sessPath) || FUTURE.get(sessPath); const t = (x && x.content) || '';
+    const sec = (t.split(/^## прочитал\s*$/m)[1] || '').split(/^## /m)[0];
+    return [...sec.matchAll(/^\d+\. \[([^\]]+)\]\(<?([^)>]+?)>?\)/gm)].map((m) => ({ name: m[1], path: relPath(sessPath, m[2]) }));
+  }
+  const hodChip = (p, name) => `<a data-p="${esc(p)}" title="${esc(p)}">${LAYERS[layerAt(p)].glyph} ${esc(name || bare(base(p)))}</a>`;
+  const hodChips = (list, max) => list.slice(0, max).map((x) => hodChip(x.path, x.name)).join('') + (list.length > max ? `<span class="more">+${list.length - max}</span>` : '');
+  let hodSig = '';
+  function renderHod() {
+    const el = $('hod'); if (!el || MODE !== 'replay' || !META.phases) return;
+    const cur = S.phase === 'done' ? META.phases.length - 1 : META.phases.findIndex((p) => p.id === S.phase);
+    const sig = `${S.phase}|${S.files.size}|${S.commits.length}`;
+    if (sig === hodSig) return; hodSig = sig;
+    if (cur < 0) { el.innerHTML = '<div class="cap">ход появится с первым шагом: пробел – запустить историю</div>'; return; }
+    const idx = resolveIndex(), meta = dashMeta();
+    el.innerHTML = META.phases.slice(0, cur + 1).map((ph, i) => {
+      const who = ph.accepts || 'владелец';
+      const done = S.phase === 'done' || S.commits.some((c) => c.phase === ph.id);
+      const reads = []; const seen = new Set();
+      for (const s of ph.sessions || []) for (const r of readOf(s.path)) if (!seen.has(r.path)) { seen.add(r.path); reads.push(r); }
+      const wrote = [...(PHASE_FILES[ph.id] || [])].filter((p) => S.files.has(p)).map((p) => ({ path: p }));
+      const dash = wrote.filter((x) => meta.has(x.path)).map((x) => meta.get(x.path));
+      const agents = (ph.sessions || []).map((s) => s.agent).filter((a, k, all) => all.indexOf(a) === k);
+      const commit = S.commits.find((c) => c.phase === ph.id);
+      return `<div class="hd-step${i === cur && S.phase !== 'done' ? ' now' : ''}" data-ph="${ph.id}"><div class="hd-h">шаг ${ph.id.slice(1)} · ${esc(ph.title)}</div>` +
+        (ph.ask ? `<div class="bub hum"><b>${esc(who)}</b><p>${esc(ph.ask)}</p></div>` : '') +
+        (agents.length ? `<div class="bub ag"><b>${esc(agents.join(', '))} · читает${(ph.sessions || []).length ? ` ${(ph.sessions || []).reduce((n, s) => n + (s.read || 0), 0)}` : ''}</b><div class="chips">${hodChips(reads, 8)}</div></div>` : '') +
+        (wrote.length ? `<div class="bub ag"><b>${esc(agents.length ? agents.join(', ') : who)} · пишет ${wrote.length}</b><div class="chips">${hodChips(wrote, 10)}</div>${dash.map((d) => `<p class="hd-dash">появился срез: <a data-p="${esc(d.path)}">${dashIcon(d.path)} ${esc(d.name)}</a> · ${esc(d.show)}</p>`).join('')}</div>` : '') +
+        (done && ph.stop ? `<div class="bub ag"><b>${esc(agents.length ? agents[0] : 'агент')} · отвечает</b><p>${esc(ph.stop.title)}. ${mdInline(ph.stop.lead, idx)}</p>${ph.branch ? `<p class="hd-q">спрашивает: ветка <code>${esc(ph.branch)}</code> готова, ${esc(who)} принимает в main?</p>` : ''}</div>` : '') +
+        (commit ? `<div class="bub hum"><b>${esc(who)} · принял</b><p>коммит <code>${esc(commit.hash || '')}</code> ${esc(commit.msg || '')}</p></div>` : '') +
+        '</div>';
+    }).join('');
+    const box = el.closest('#tabBody'); if (box && !el.closest('.tabpane').hidden) box.scrollTop = box.scrollHeight;
+  }
+  $('hod').addEventListener('click', (e) => { const a = e.target.closest('a[data-p]'); if (a) openPreview(a.dataset.p); });
+  if (MODE !== 'replay' || NO_STEPS) $('hodTab').hidden = true; else $('hodTab').click();
+
   // ---------- render loop ----------
   function renderAll(progress, replayT) {
-    if (dirty) { renderGraph(); renderTree(); renderCommits(); renderLanes(); renderDash(); renderNarr(); renderTools(); renderRuns(); pvSync(); dirty = false; }
+    if (dirty) { renderGraph(); renderTree(); renderCommits(); renderLanes(); renderDash(); renderNarr(); renderTools(); renderRuns(); renderHod(); pvSync(); dirty = false; }
     renderAnketa(replayT);
     renderPhases(progress);
   }
