@@ -916,3 +916,7 @@ body.nosteps #tl,body.nosteps #narr,body.nosteps #phPrev{display:none !important
 .aa-h a{margin-left:auto; cursor:pointer; border-bottom:1px solid var(--accent)}
 .aa-q{margin:4px 0; color:#444}
 .aa-q::before{content:'› '; color:var(--accent); font-weight:700}
+/* labels by rank: one that hits a stronger label shows on hover or when zoomed in; ghosts stay pale and silent */
+#graph .node.lx text{visibility:hidden}
+#graph.hovering .node.lx:not(.dim) text,#graph .node.lx.sel text{visibility:visible}
+#graph .node.ghost{opacity:.55}

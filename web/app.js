@@ -234,8 +234,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   let autoFit = true;
   const zoom = d3.zoom().scaleExtent([0.3, 3]).on('zoom', (e) => {
     root.attr('transform', e.transform); if (e.sourceEvent) autoFit = false;
-    // labels keep a readable size when the whole graph is fitted small
-    svg.style('--inv', Math.min(1.45, Math.max(1, 1 / e.transform.k)).toFixed(3));
+    // labels keep a readable size when the whole graph is fitted small and stay that size when zoomed in, so crowded labels part
+    svg.style('--inv', Math.min(1.45, Math.max(0.6, 1 / e.transform.k)).toFixed(3));
   });
   svg.call(zoom).on('dblclick.zoom', null).on('dblclick', () => { autoFit = true; });
   let SEL = null; // path of the file open in the side panel, highlighted on graph and tree
@@ -248,10 +248,10 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     renderTree();
     const row = document.querySelector('#tree .file.sel'); if (row) row.scrollIntoView({ block: 'nearest' });
     const n = p && nodeById.get(p);
-    if (focus && n && Number.isFinite(n.x)) { autoFit = false; svg.transition().duration(500).call(zoom.translateTo, n.x, n.y); }
+    if (focus && !autoFit && n && Number.isFinite(n.x)) svg.transition().duration(500).call(zoom.translateTo, n.x, n.y);
     if (!p) autoFit = true;
   }
-  let W = 800, H = 600, DENSE = false;
+  let W = 800, H = 600, DENSE = false, SPREAD = 1;
   const nodeById = new Map();
   function linkStrength(l) {
     const a = l.source.layer || '', b = l.target.layer || '';
@@ -260,8 +260,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     return a === b ? 0.18 : 0.07;
   }
   const sim = d3.forceSimulation()
-    .force('link', d3.forceLink().id((d) => d.id).distance((l) => (String(l.kind).startsWith('agent') ? 80 : 60)).strength(linkStrength))
-    .force('charge', d3.forceManyBody().strength((d) => (d.layer === 'ghost' ? -20 : d.layer === 'context' ? -70 : DENSE ? -120 : -190)))
+    .force('link', d3.forceLink().id((d) => d.id).distance((l) => (String(l.kind).startsWith('agent') ? 80 : 60) * SPREAD).strength(linkStrength))
+    .force('charge', d3.forceManyBody().strength((d) => (d.layer === 'ghost' ? -20 : (d.layer === 'context' ? -70 : DENSE ? -120 : -190) * SPREAD)))
     .force('x', d3.forceX((d) => anchor(d).x).strength((d) => (d.layer === 'ghost' ? 0.05 : d.layer === 'context' ? 0.32 : 0.18)))
     .force('y', d3.forceY((d) => anchor(d).y).strength((d) => (d.layer === 'ghost' ? 0.05 : d.layer === 'context' ? 0.5 : 0.18)))
     .force('collide', d3.forceCollide((d) => Math.sqrt(LAYERS[d.layer].size) / 1.4 + 14))
@@ -280,16 +280,23 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const off = d.slotN > 1 ? d.slot - (d.slotN - 1) / 2 : 0;
     const vertical = VERTICAL.has(d.layer);
     const step = off === 0 ? 0 : vertical ? Math.min(40, (H * 0.34) / d.slotN) : Math.min(70, (W * (d.layer === 'skill' ? 0.72 : K ? 0.6 : 0.42)) / d.slotN);
-    return { x: W / 2 + L.ax * W * 0.45 + (vertical ? 0 : off * step), y: H / 2 + L.ay * H * 0.42 + (vertical ? off * step : 0) };
+    // a wide canvas spreads the layers sideways, the fitted view then fills its width
+    const wide = Math.max(1, Math.min(1.4, W / H / 1.15));
+    return { x: W / 2 + L.ax * W * 0.45 * wide + (vertical ? 0 : off * step), y: H / 2 + L.ay * H * 0.42 + (vertical ? off * step : 0) };
   }
   function resize() {
     const r = document.getElementById('stage').getBoundingClientRect();
-    W = Math.max(320, r.width); H = Math.max(300, r.height);
+    if (!r.width || !r.height) return;
+    const w = Math.max(320, r.width), h = Math.max(300, r.height);
+    if (Math.abs(w - W) < 2 && Math.abs(h - H) < 2) return;
+    W = w; H = h;
     svg.attr('viewBox', `0 0 ${W} ${H}`);
     sim.force('x').x((d) => anchor(d).x); sim.force('y').y((d) => anchor(d).y);
     sim.alpha(0.3).restart();
   }
   window.addEventListener('resize', resize);
+  // the stage also changes size without the window: a tab opened in the background, panels, the step strip
+  if (window.ResizeObserver) new ResizeObserver(() => resize()).observe(document.getElementById('stage'));
 
   function buildGraph() {
     const idx = resolveIndex();
@@ -369,10 +376,13 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
           .on('mouseleave', () => { hoverId = null; highlight(); });
         return g;
       });
-    const dense = next.filter((n) => n.layer !== 'ghost').length > 70;
+    const real = next.filter((n) => n.layer !== 'ghost').length;
+    const dense = real > 70;
     DENSE = dense;
+    // 150+ files: longer links and stronger repulsion (sim.nodes and links below pick it up), the view then fits it back
+    SPREAD = Math.max(1, Math.min(1.8, Math.sqrt(real / 90)));
     svg.classed('dense', dense);
-    nodeSel.attr('class', (d) => `node ${d.layer === 'ghost' ? 'ghost' : ''} ${d.layer === 'agent' ? 'agent' : ''} ${d.layer === 'agentrole' ? 'agentfile' : ''}${d.file && d.file.fm && d.file.fm.graph === 'main' ? ' main' : ''} ${hiddenLayers.has(d.layer) ? 'off' : ''} L-${d.layer}`);
+    nodeSel.attr('class', function (d) { return `node${this.classList.contains('lx') ? ' lx' : ''} ${d.layer === 'ghost' ? 'ghost' : ''} ${d.layer === 'agent' ? 'agent' : ''} ${d.layer === 'agentrole' ? 'agentfile' : ''}${d.file && d.file.fm && d.file.fm.graph === 'main' ? ' main' : ''} ${hiddenLayers.has(d.layer) ? 'off' : ''} L-${d.layer}`; });
     nodeSel.classed('sel', (d) => d.id === SEL).classed('fresh', (d) => S.fresh.has(d.id));
     linkSel.classed('off', (l) => hiddenLayers.has((nodeById.get(l.source.id || l.source) || {}).layer) || hiddenLayers.has((nodeById.get(l.target.id || l.target) || {}).layer));
     nodeSel.select('path').attr('d', (d) => d3.symbol(SYM[LAYERS[d.layer].sym], LAYERS[d.layer].size)())
@@ -420,13 +430,52 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     }
     if (!Number.isFinite(x0)) return;
     const pad = 12;
-    const k = Math.max(0.3, Math.min(1, (W - 2 * pad) / (x1 - x0), (H - 2 * pad) / (y1 - y0)));
-    const tx = W / 2 - (k * (x0 + x1)) / 2, ty = H / 2 - (k * (y0 + y1)) / 2;
+    const [vx0, vx1] = visibleX();
+    const k = Math.max(0.3, Math.min(sim.nodes().length > 40 ? 1.8 : 1, (vx1 - vx0 - 2 * pad) / (x1 - x0), (H - 2 * pad) / (y1 - y0)));
+    const tx = (vx0 + vx1) / 2 - (k * (x0 + x1)) / 2, ty = H / 2 - (k * (y0 + y1)) / 2;
     const cur = d3.zoomTransform(svg.node()), a = 0.16;
     if (Math.abs(k - cur.k) < 0.002 && Math.abs(tx - cur.x) < 0.5 && Math.abs(ty - cur.y) < 0.5) return;
     svg.call(zoom.transform, d3.zoomIdentity.translate(cur.x + (tx - cur.x) * a, cur.y + (ty - cur.y) * a).scale(cur.k + (k - cur.k) * a));
   }
-  (function fitLoop() { fitStep(); requestAnimationFrame(fitLoop); })();
+  // the file card covers the right side of the canvas on a wide screen: the graph fits into what is left
+  function visibleX() {
+    const pv = document.getElementById('preview');
+    if (!pv || pv.hidden || pv.classList.contains('full')) return [0, W];
+    const r = document.getElementById('stage').getBoundingClientRect(), c = pv.getBoundingClientRect();
+    const left = c.left - r.left - 8;
+    return left > W * 0.35 && left < W ? [0, left] : [0, W];
+  }
+  // labels by rank: hubs, sections, roles and agents, the owner conversation, then by links;
+  // a label that hits a stronger one waits for hover or zoom
+  const RANK = { hub: 6, section: 5, role: 4, agentrole: 4, agent: 4, skill: 3, raw: 2 };
+  let labelAt = 0;
+  function labelStep() {
+    const t = performance.now();
+    if (!nodeSel || t - labelAt < 150) return;
+    labelAt = t;
+    const z = d3.zoomTransform(svg.node());
+    const inv = svg.style('--inv');
+    const deg = new Map();
+    linkSel.each((l) => { for (const e of [l.source, l.target]) if (e && e.id) deg.set(e.id, (deg.get(e.id) || 0) + 1); });
+    const items = [];
+    nodeSel.each(function (d) {
+      const tx = this.querySelector('text');
+      if (!tx || d.layer === 'ghost' || !Number.isFinite(d.x) || getComputedStyle(tx).display === 'none') { this.classList.remove('lx'); return; }
+      const key = `${d.title}|${inv}|${d.layer}|${this.classList.contains('main')}`;
+      if (d.bbKey !== key) { const b = tx.getBBox(); d.bb = [b.x, b.y, b.width, b.height]; d.bbKey = key; }
+      const main = d.file && d.file.fm && d.file.fm.graph === 'main';
+      items.push({ el: this, rank: (d.id === SEL ? 100 : main ? 5.5 : RANK[d.layer] || 0) * 1000 + (deg.get(d.id) || 0),
+        x: z.x + z.k * (d.x + d.bb[0]), y: z.y + z.k * (d.y + d.bb[1]), w: z.k * d.bb[2], h: z.k * d.bb[3] });
+    });
+    items.sort((a, b) => b.rank - a.rank);
+    const placed = [];
+    for (const it of items) {
+      const hit = placed.some((p) => it.x < p.x + p.w + 2 && p.x < it.x + it.w + 2 && it.y < p.y + p.h && p.y < it.y + it.h);
+      it.el.classList.toggle('lx', hit);
+      if (!hit) placed.push(it);
+    }
+  }
+  (function fitLoop() { fitStep(); labelStep(); requestAnimationFrame(fitLoop); })();
   // graph filter: a substring of name or path, «type:роль» picks a layer; the rest fades to a tenth
   let FILTER = '';
   function filterHit(d) {
@@ -883,7 +932,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const f = S.files.get(PV.path);
     const editing = PV.mode === 'edit';
     const content = editing ? PV.buffer : (f ? f.content : '');
-    const isHtml = PV.path.endsWith('.html'), isMd = PV.path.endsWith('.md');
+    const isHtml = PV.path.endsWith('.html'), isMd = /\.(md|txt|docx?|xlsx?|rtf)$/i.test(PV.path);
     const rich = (isHtml || isMd) && PV.mode !== 'raw';
     $('pvEditor').hidden = !editing;
     $('pvBody').hidden = rich || editing;
