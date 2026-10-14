@@ -1,7 +1,7 @@
 ---
 description: агент-постановщик – решения встреч в задачи с исполнителем и сроком
 type: role
-kind: агент
+kind: agent
 lane: dispatcher
 ---
 # Агент · постановщик

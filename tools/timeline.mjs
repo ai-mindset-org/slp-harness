@@ -1,8 +1,9 @@
 // Builds one timeline from kit/manifest.json. Replay (web/scenario.json) and the
 // live demo (tools/harness-demo.mjs) both consume it, so the two never drift.
 //
-// Kit files live under their FINAL names ("{rule} anti-slop.md"). A step may
-// carry `early` – the plain name the file has before the naming rule appears.
+// Kit files live under their FINAL names ("{rule} anti-slop.md"). Before the naming rule a file
+// may show a raw human name ("брони сентябрь (2).xlsx"): `early` on the step, or a {from, to}
+// pair in the `rename` list of the phase that brings the rule.
 // The `rename-all` step moves every early file to its final name and rewrites
 // wikilinks, the way Obsidian does on rename.
 import fs from 'node:fs';
@@ -65,12 +66,16 @@ export function buildTimeline(kitDir, answersOverride) {
   const preNaming = []; // files without an early name, written before the naming rule (links get rewritten)
   let named = false;
   let t = 0;
+  // raw names for show only: the files on disk keep their final names
+  const rawName = new Map();
+  for (const ph of manifest.phases) for (const r of ph.rename || []) rawName.set(r.to, r.from);
 
   const fileEvent = (at, st, lane) => {
     const content = readSrc(kitDir, st, answers);
-    if (!named && st.early) {
-      early.set(st.path, { early: st.early, step: st });
-      return { at, type: 'file', path: st.early, content: stripTypeLinks(content), lane };
+    const raw = st.early || rawName.get(st.path);
+    if (!named && raw) {
+      early.set(st.path, { early: raw, step: st });
+      return { at, type: 'file', path: raw, content: stripTypeLinks(content), lane };
     }
     if (!named && /\.md$/.test(st.path)) {
       preNaming.push(st);
@@ -148,7 +153,7 @@ export function buildTimeline(kitDir, answersOverride) {
     const body = (ph.sessions || []).map((x) => `${x.agent}: прочитал ${x.read}, создал ${x.created} · журнал ${x.path}`).join('\n');
     events.push({ at: t, type: 'commit', msg: ph.commit, phase: ph.id, branch: ph.branch || null, agentMsg: ph.agentCommit ? `${ph.agentCommit}\n\n${ph.ask ? `запрос: ${ph.ask}\n` : ''}${body}` : null, accepts: ph.accepts || null });
     phases.push({ id: ph.id, title: ph.title, start, end: t, parallel: !!ph.parallel, stop: ph.stop || null, ask: ph.ask || null, how: ph.how || null, why: ph.why || null,
-      sessions: ph.sessions || null, branch: ph.branch || null, accepts: ph.accepts || null, agentCommit: ph.agentCommit || null });
+      sessions: ph.sessions || null, branch: ph.branch || null, accepts: ph.accepts || null, agentCommit: ph.agentCommit || null, rename: ph.rename || null });
     t += 600;
   }
   events.sort((a, b) => a.at - b.at || order(a) - order(b));

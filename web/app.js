@@ -18,6 +18,10 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   const LOCALHOST = ['localhost', '127.0.0.1'].includes(location.hostname);
   document.body.classList.toggle('live', MODE !== 'replay');
   document.body.classList.toggle('team', TEAM);
+  // an own folder (picked in the browser, opened locally, the group folder) has no history steps:
+  // the strip of steps 00–10 and the «сейчас» bar belong to the story of the sample only
+  const NO_STEPS = MODE !== 'replay' || !!SCENARIO_KIT;
+  document.body.classList.toggle('nosteps', NO_STEPS);
   const keepKit = (u) => { if (SCENARIO_KIT) u.searchParams.set('kit', SCENARIO_KIT); return u; };
   // the SLP group folder: its own subtitle, no GitHub (it never leaves this computer)
   if (SCENARIO_KIT) {
@@ -41,7 +45,9 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     source:     { label: 'встреча',    sym: 'square',   fill: false,   size: 150, glyph: '□', ax: -0.9,  ay: 0.3 },
     research:   { label: 'вопрос',     sym: 'wye',      fill: false,   size: 160, glyph: 'Y', ax: -0.62, ay: 0.62 },
     rule:       { label: 'правило',    sym: 'diamond',  fill: false,   size: 170, glyph: '◇', ax: -0.5,  ay: -0.92 },
-    role:       { label: 'роль',       sym: 'hexagon',  fill: false,   size: 160, glyph: '⬡', ax: -0.56, ay: -0.66 },
+    role:       { label: 'роль · человек', sym: 'hexagon', fill: false, size: 170, glyph: '⬡', ax: -0.56, ay: -0.7 },
+    // an agent is a role too: the same hexagon, filled
+    agentrole:  { label: 'роль · агент', sym: 'hexagon',  fill: true,   size: 170, glyph: '⬢', ax: -0.62, ay: -0.16 },
     segment:    { label: 'гости',      sym: 'circle',   fill: 'hair',  size: 170, glyph: '◍', ax: 0.36,  ay: -0.86 },
     competitor: { label: 'конкурент',  sym: 'star',     fill: false,   size: 180, glyph: '☆', ax: 0.86,  ay: -0.46 },
     channel:    { label: 'канал',      sym: 'chev',     fill: false,   size: 150, glyph: '➤', ax: 0.66,  ay: 0.0 },
@@ -83,7 +89,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   // an agent is a file: people/{role} агент <имя>.md with `lane:` in frontmatter – instruction and prompt
   function agentFileOf(id) {
     const want = META.lanes && META.lanes[id] && META.lanes[id].file;
-    return (want && S.files.get(want)) || [...S.files.values()].find((f) => f.fm && f.fm.lane === id && f.layer === 'role') || null;
+    return (want && S.files.get(want)) || [...S.files.values()].find((f) => f.fm && f.fm.lane === id && isRole(f.layer)) || null;
   }
   function roleTask(id) {
     const f = agentFileOf(id), m = f && /```text\n([\s\S]*?)```/.exec(f.content || '');
@@ -95,7 +101,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const c = S.commits.find((x) => x.phase === ph.id);
     return `<div class="sess"><span class="cap">сессия агента · ветка ${esc(ph.branch || '')} → main</span>` + ph.sessions.map((x) => {
       const has = S.files.has(x.path);
-      return `<div class="se"><a class="se-a" data-p="${esc(x.file)}" title="инструкция и промпт агента">● ${esc(x.agent)}</a><span class="se-n">прочитал ${x.read} · создал ${x.created}</span>${has ? `<a class="se-j" data-p="${esc(x.path)}" title="${esc(x.path)}">журнал ↗</a>` : '<i class="se-w">журнал в конце шага</i>'}</div>`;
+      const by = x.by ? `<a class="se-by" data-p="${esc(x.byFile || '')}" title="карточка роли">⬡ ${esc(x.by)}</a><span class="se-n">запускает →</span>` : '';
+      return `<div class="se">${by}<a class="se-a" data-p="${esc(x.file)}" title="инструкция и промпт агента">⬢ ${esc(x.agent)}</a><span class="se-n">прочитал ${x.read} · создал ${x.created}</span>${has ? `<a class="se-j" data-p="${esc(x.path)}" title="${esc(x.path)}">журнал ↗</a>` : '<i class="se-w">журнал в конце шага</i>'}</div>`;
     }).join('') + `<div class="se-c"><span>${esc(ph.agentCommit || '')}</span><i> · в main${c ? ` <b>${esc(c.hash)}</b>` : ''}${ph.accepts ? `, сливает ${esc(ph.accepts)}` : ''}</i></div></div>`;
   }
   const CHANNELS = [['linkedin', 'LinkedIn'], ['telegram', 'Telegram'], ['carousel', 'карусель'], ['landing', 'лендинг']];
@@ -117,6 +124,9 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     channel: 'channel', tool: 'tool', task: 'output', check: 'eval', metric: 'eval', routine: 'automation', dashboard: 'dashboard', class: 'cls', track: 'track',
     cluster: 'cluster', person: 'person', participant: 'person', guest: 'guest', speaker: 'guest', hub: 'hub' };
   const layerAt = (p) => (S.files.get(p) || {}).layer || layerOf(p);
+  const isRole = (l) => l === 'role' || l === 'agentrole';
+  // `kind: human | agent` in a role's frontmatter; older folders write «агент»
+  const isAgentKind = (fm) => /^(agent|агент)$/i.test(String(fm.kind || '').trim());
   // '../rules/{rule} x.md' seen from 'asks/a.md' → 'rules/{rule} x.md'
   function joinPath(from, rel) {
     const out = from.split('/').slice(0, -1);
@@ -134,7 +144,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   const bare = (s) => s.replace(/^\{[a-z-]+\}\s+/, '').replace(/\s+–\s+\d{4}-\d{2}-\d{2}$/, '');
   function parse(path, content) {
     const fm = frontmatter(content);
-    const layer = TYPE_LAYER[fm.type] || layerOf(path);
+    let layer = TYPE_LAYER[fm.type] || layerOf(path);
+    if (layer === 'role' && isAgentKind(fm)) layer = 'agentrole';
     const isMd = path.endsWith('.md');
     let title = bare(base(path));
     if (layer === 'skill') title = fm.name || title;
@@ -165,6 +176,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     Object.assign(S, {
       files: new Map(), commits: [], lanes: {}, wrote: {}, phase: null, narr: '', narrTag: 'сейчас',
       answersShown: 0, answersTyping: null, fresh: new Map(), ringed: new Set(), freshCommit: null, runs: [], lastFile: null,
+      renLog: [], // {from, to, phase, at}: the tree shows «old → new» while the renaming phase lasts
     });
     renamedFrom.clear();
   }
@@ -204,6 +216,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const f = S.files.get(from);
     S.files.delete(from);
     renamedFrom.set(to, from);
+    S.renLog.push({ from, to, phase: S.phase, at: animate ? now() : 0 });
     for (const set of Object.values(S.wrote)) if (set.delete(from)) set.add(to);
     upsertFile(to, content ?? f?.content ?? '', null, animate, f?.born);
     markDirty();
@@ -215,8 +228,14 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   const gLinks = root.append('g');
   const gNodes = root.append('g');
   const gFx = root.append('g');
-  const zoom = d3.zoom().scaleExtent([0.35, 3]).on('zoom', (e) => root.attr('transform', e.transform));
-  svg.call(zoom);
+  // the view fits the whole graph by itself until a person zooms or pans; double click fits again
+  let autoFit = true;
+  const zoom = d3.zoom().scaleExtent([0.3, 3]).on('zoom', (e) => {
+    root.attr('transform', e.transform); if (e.sourceEvent) autoFit = false;
+    // labels keep a readable size when the whole graph is fitted small
+    svg.style('--inv', Math.min(1.45, Math.max(1, 1 / e.transform.k)).toFixed(3));
+  });
+  svg.call(zoom).on('dblclick.zoom', null).on('dblclick', () => { autoFit = true; });
   let SEL = null; // path of the file open in the side panel, highlighted on graph and tree
   let jumpToPhase = null; // set by replay: phase index → its end state and card
   // replay: every file of the build, so search finds what has not appeared yet and jumps to its moment
@@ -227,9 +246,10 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     renderTree();
     const row = document.querySelector('#tree .file.sel'); if (row) row.scrollIntoView({ block: 'nearest' });
     const n = p && nodeById.get(p);
-    if (focus && n && Number.isFinite(n.x)) svg.transition().duration(500).call(zoom.translateTo, n.x, n.y);
+    if (focus && n && Number.isFinite(n.x)) { autoFit = false; svg.transition().duration(500).call(zoom.translateTo, n.x, n.y); }
+    if (!p) autoFit = true;
   }
-  let W = 800, H = 600;
+  let W = 800, H = 600, DENSE = false;
   const nodeById = new Map();
   function linkStrength(l) {
     const a = l.source.layer || '', b = l.target.layer || '';
@@ -239,13 +259,13 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   }
   const sim = d3.forceSimulation()
     .force('link', d3.forceLink().id((d) => d.id).distance((l) => (String(l.kind).startsWith('agent') ? 80 : 60)).strength(linkStrength))
-    .force('charge', d3.forceManyBody().strength((d) => (d.layer === 'ghost' ? -40 : d.layer === 'context' ? -70 : -190)))
-    .force('x', d3.forceX((d) => anchor(d).x).strength((d) => (d.layer === 'ghost' ? 0.015 : d.layer === 'context' ? 0.32 : 0.18)))
-    .force('y', d3.forceY((d) => anchor(d).y).strength((d) => (d.layer === 'ghost' ? 0.015 : d.layer === 'context' ? 0.5 : 0.18)))
+    .force('charge', d3.forceManyBody().strength((d) => (d.layer === 'ghost' ? -20 : d.layer === 'context' ? -70 : DENSE ? -120 : -190)))
+    .force('x', d3.forceX((d) => anchor(d).x).strength((d) => (d.layer === 'ghost' ? 0.05 : d.layer === 'context' ? 0.32 : 0.18)))
+    .force('y', d3.forceY((d) => anchor(d).y).strength((d) => (d.layer === 'ghost' ? 0.05 : d.layer === 'context' ? 0.5 : 0.18)))
     .force('collide', d3.forceCollide((d) => Math.sqrt(LAYERS[d.layer].size) / 1.4 + 14))
     .alphaDecay(0.03)
     .on('tick', ticked);
-  const VERTICAL = new Set(['source', 'research', 'eval', 'dashboard']);
+  const VERTICAL = new Set(['source', 'research', 'eval', 'dashboard', 'raw', 'agentrole']);
   const KIND_AT = { паспорт: [-0.3, -0.42], сегмент: [0.34, -0.94], кластер: [0.34, -0.94], конкурент: [0.46, -0.72], участник: [0.46, -0.72], канал: [0.5, -0.48], гость: [0.5, -0.48] };
   const SEC_AT = { context: 'context', company: 'context', sources: 'raw', meetings: 'source', asks: 'research', rules: 'rule', people: 'role', audience: 'segment', competitors: 'competitor',
     channels: 'channel', tools: 'tool', guides: 'guide', tasks: 'output', checks: 'eval', routines: 'automation', dashboards: 'dashboard', metrics: 'eval', participants: 'person', guests: 'guest' };
@@ -253,6 +273,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const L0 = LAYERS[d.layer];
     const K = d.layer === 'context' && d.file && KIND_AT[d.file.kind];
     const L = K ? { ...L0, ax: K[0], ay: K[1] } : d.layer === 'section' && d.file ? { ...LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'], ax: (LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'].ax || 0) * 0.82, ay: (LAYERS[SEC_AT[d.file.path.split('/')[0]] || 'hub'].ay || 0) * 0.82 } : L0;
+    if (d.layer === 'ghost') return { x: W / 2, y: H / 2 };
     if (L.ax === undefined) return { x: d.x ?? W / 2, y: d.y ?? H / 2 };
     const off = d.slotN > 1 ? d.slot - (d.slotN - 1) / 2 : 0;
     const vertical = VERTICAL.has(d.layer);
@@ -346,9 +367,10 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
           .on('mouseleave', () => { hoverId = null; highlight(); });
         return g;
       });
-    const dense = next.length > 70;
+    const dense = next.filter((n) => n.layer !== 'ghost').length > 70;
+    DENSE = dense;
     svg.classed('dense', dense);
-    nodeSel.attr('class', (d) => `node ${d.layer === 'ghost' ? 'ghost' : ''} ${d.layer === 'agent' ? 'agent' : ''} ${d.file && d.file.fm && d.file.fm.kind === 'агент' ? 'agentfile' : ''} ${hiddenLayers.has(d.layer) ? 'off' : ''} L-${d.layer}`);
+    nodeSel.attr('class', (d) => `node ${d.layer === 'ghost' ? 'ghost' : ''} ${d.layer === 'agent' ? 'agent' : ''} ${d.layer === 'agentrole' ? 'agentfile' : ''}${d.file && d.file.fm && d.file.fm.graph === 'main' ? ' main' : ''} ${hiddenLayers.has(d.layer) ? 'off' : ''} L-${d.layer}`);
     nodeSel.classed('sel', (d) => d.id === SEL).classed('fresh', (d) => S.fresh.has(d.id));
     linkSel.classed('off', (l) => hiddenLayers.has((nodeById.get(l.source.id || l.source) || {}).layer) || hiddenLayers.has((nodeById.get(l.target.id || l.target) || {}).layer));
     nodeSel.select('path').attr('d', (d) => d3.symbol(SYM[LAYERS[d.layer].sym], LAYERS[d.layer].size)())
@@ -376,11 +398,33 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   }
   function ticked() {
     if (!linkSel) return;
-    for (const d of sim.nodes()) { d.x = Math.max(26, Math.min(W - 26, d.x)); d.y = Math.max(18, Math.min(H - 22, d.y)); }
+    // a loose fence against runaways; fitting the view keeps every node inside the canvas
+    for (const d of sim.nodes()) { d.x = Math.max(-0.3 * W, Math.min(1.3 * W, d.x)); d.y = Math.max(-0.3 * H, Math.min(1.3 * H, d.y)); }
     linkSel.attr('x1', (l) => l.source.x).attr('y1', (l) => l.source.y).attr('x2', (l) => l.target.x).attr('y2', (l) => l.target.y);
     nodeSel.attr('transform', (d) => `translate(${d.x},${d.y})`);
     gFx.selectAll('circle.ring').attr('cx', (d) => d.x).attr('cy', (d) => d.y);
   }
+  // labels that stay on in a dense graph: sources, roles, agents and the main files
+  const LABELED = new Set(['hub', 'section', 'raw', 'role', 'agentrole', 'agent']);
+  function fitStep() {
+    if (!autoFit || !nodeSel) return;
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const d of sim.nodes()) {
+      if (hiddenLayers.has(d.layer) || !Number.isFinite(d.x)) continue;
+      const r = Math.sqrt(LAYERS[d.layer].size) / 1.5;
+      const half = !DENSE || LABELED.has(d.layer) ? Math.max(r, Math.min(24, (d.title || '').length) * 2.9) : r;
+      x0 = Math.min(x0, d.x - half); x1 = Math.max(x1, d.x + half);
+      y0 = Math.min(y0, d.y - r - 2); y1 = Math.max(y1, d.y + r + 16);
+    }
+    if (!Number.isFinite(x0)) return;
+    const pad = 12;
+    const k = Math.max(0.3, Math.min(1, (W - 2 * pad) / (x1 - x0), (H - 2 * pad) / (y1 - y0)));
+    const tx = W / 2 - (k * (x0 + x1)) / 2, ty = H / 2 - (k * (y0 + y1)) / 2;
+    const cur = d3.zoomTransform(svg.node()), a = 0.16;
+    if (Math.abs(k - cur.k) < 0.002 && Math.abs(tx - cur.x) < 0.5 && Math.abs(ty - cur.y) < 0.5) return;
+    svg.call(zoom.transform, d3.zoomIdentity.translate(cur.x + (tx - cur.x) * a, cur.y + (ty - cur.y) * a).scale(cur.k + (k - cur.k) * a));
+  }
+  (function fitLoop() { fitStep(); requestAnimationFrame(fitLoop); })();
   function highlight() {
     if (!nodeSel) return;
     svg.classed('hovering', !!hoverId);
@@ -415,13 +459,24 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       const L = LAYERS[k];
       const d = d3.symbol(SYM[L.sym], Math.min(L.size, 120) * 0.85)();
       const fill = L.fill === true ? '#0a0a0a' : L.fill === 'accent' ? '#ee5a24' : L.fill === 'hair' ? '#e6e6e6' : '#fff';
-      const dash = k === 'ghost' ? ' stroke-dasharray="2 2" stroke="#aaa"' : ` stroke="${k === 'agent' ? '#ee5a24' : '#0a0a0a'}"`;
+      const dash = k === 'ghost' ? ' stroke-dasharray="2 2" stroke="#aaa"' : ` stroke="${k === 'agent' || k === 'agentrole' ? '#d92027' : '#0a0a0a'}"`;
       return `<span data-l="${k}" class="${hiddenLayers.has(k) ? 'off' : ''}" title="клик – скрыть или показать · alt-клик – только этот слой"><svg viewBox="-8 -8 16 16"><path d="${d}" fill="${fill}"${dash} stroke-width="1.2"/></svg>${L.label}</span>`;
     }).join('') + (order.length ? '<b class="lg-all"><button type="button" data-all="all" title="показать все слои">все</button><button type="button" data-all="none" title="скрыть все слои">ничего</button></b>' : '');
   }
 
   // ---------- panels ----------
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  // folders fold on a click; the choice survives reload, a folder of more than 15 files starts folded
+  const TREE_FOLD_KEY = 'mh-tree-fold';
+  let treeFold = {};
+  try { treeFold = JSON.parse(localStorage.getItem(TREE_FOLD_KEY) || '{}') || {}; } catch { treeFold = {}; }
+  const folded = (g, n) => (g in treeFold ? treeFold[g] : n > 15);
+  // renamed in the current phase: the raw name struck through, the final name under it
+  const renamedNow = () => new Map(S.renLog.filter((r) => r.phase === S.phase).map((r) => [r.to, r]));
+  function renameRow(r, name) {
+    const d = r.at ? Math.round(r.at - now()) : -5000; // negative: the animation already ran that long
+    return `<span class="rn" style="--d:${d}ms"><s>${esc(r.from)}</s><em>${esc(name)}</em></span>`;
+  }
   function renderTree() {
     const groups = new Map();
     for (const f of S.files.values()) {
@@ -432,17 +487,30 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const rank = (g) => { const i = FOLDER_ORDER.indexOf(g); return i < 0 ? 99 : i; };
     const order = [...groups.keys()].sort((a, b) => rank(a) - rank(b));
     const t = now();
+    const ren = renamedNow();
     document.getElementById('tree').innerHTML = order.map((g) => {
       const files = groups.get(g).sort((a, b) => a.path.localeCompare(b.path));
-      return `<div class="fold"><b>${g ? `${esc(g)}/` : './'}</b> ${files.length}</div>` + files.map((f) => {
+      const shut = folded(g, files.length) && !files.some((f) => ren.has(f.path));
+      const fresh = files.filter((f) => S.fresh.has(f.path) && t - S.fresh.get(f.path) < 1800).length;
+      return `<div class="fold${shut ? ' shut' : ''}${shut && fresh ? ' new' : ''}" data-g="${esc(g)}" title="клик – свернуть или развернуть"><b>${g ? `${esc(g)}/` : './'}</b> ${files.length}${shut && fresh ? ` <i>+${fresh}</i>` : ''}</div>` + files.filter((f) => !shut || f.path === SEL).map((f) => {
         const isNew = S.fresh.has(f.path) && t - S.fresh.get(f.path) < 1800;
         const name = g ? f.path.slice(g.length + 1) : f.path;
-        return `<div class="file${isNew ? ' new' : ''}${f.path === SEL ? ' sel' : ''}" data-p="${esc(f.path)}" title="${esc(f.path)}"><span class="g">${LAYERS[f.layer].glyph}</span><span>${esc(name)}</span></div>`;
+        const r = ren.get(f.path);
+        return `<div class="file${isNew ? ' new' : ''}${r ? ' ren' : ''}${f.path === SEL ? ' sel' : ''}" data-p="${esc(f.path)}" title="${esc(f.path)}"><span class="g">${LAYERS[f.layer].glyph}</span>${r ? renameRow(r, name) : `<span>${esc(name)}</span>`}</div>`;
       }).join('');
     }).join('');
     document.getElementById('fileCount').textContent = S.files.size;
   }
-  document.getElementById('tree').addEventListener('click', (e) => { const el = e.target.closest('.file'); if (el) openPreview(el.dataset.p); });
+  document.getElementById('tree').addEventListener('click', (e) => {
+    const fo = e.target.closest('.fold[data-g]');
+    if (fo) {
+      const g = fo.dataset.g, n = [...S.files.values()].filter((f) => (f.path.includes('/') ? f.path.split('/')[0] : '') === g).length;
+      treeFold[g] = !folded(g, n);
+      try { localStorage.setItem(TREE_FOLD_KEY, JSON.stringify(treeFold)); } catch { /* private mode */ }
+      renderTree(); return;
+    }
+    const el = e.target.closest('.file'); if (el) openPreview(el.dataset.p);
+  });
 
   function renderCommits() {
     const ol = document.getElementById('commits');
@@ -470,13 +538,24 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     }).join('');
     document.getElementById('qaCount').textContent = `${partial ? partial.i : shown}/${qs2.length}`;
     document.getElementById('anketaP').classList.toggle('compact', !!S.phase && !['p00', 'p01'].includes(S.phase));
-    document.body.classList.toggle('nolanes', MODE === 'replay' && !Object.keys(S.lanes || {}).length);
+    document.body.classList.toggle('nolanes', MODE === 'replay' && !Object.keys(S.lanes || {}).length && !humans().length);
   }
 
+  // people next to the agents: every human role of the folder, an empty card says so
+  const humans = () => [...S.files.values()].filter((f) => f.layer === 'role').sort((a, b) => a.path.localeCompare(b.path));
+  function peopleHtml() {
+    const list = humans();
+    if (!list.length) return '';
+    return `<div class="people"><span class="cap">люди · ${list.length}</span>${list.map((f) => {
+      const empty = /ещё не описана/.test(f.fm.description || '');
+      return `<a class="open pp${empty ? ' empty' : ''}" data-p="${esc(f.path)}" title="${esc(f.fm.description || f.path)}">⬡ ${esc(f.title)}${empty ? '<small>карточка ещё не описана</small>' : ''}</a>`;
+    }).join('')}</div>`;
+  }
   function renderLanes() {
     if (MODE !== 'replay') { renderLanesLive(); return; }
     let active = 0;
-    document.getElementById('lanes').innerHTML = LANE_ORDER.map((id) => {
+    // an agent shows up on the step where it enters the story: its file or its first run
+    document.getElementById('lanes').innerHTML = LANE_ORDER.filter((id) => S.lanes[id] || agentFileOf(id)).map((id) => {
       const l = S.lanes[id] || { status: 'idle' };
       const m = LANE_META[id];
       if (l.status === 'running') active++;
@@ -485,7 +564,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       const af = agentFileOf(id);
       return `<div class="lane ${l.status}"><i class="dot"></i><div>${af ? `<a class="open an" data-p="${esc(af.path)}" title="инструкция и промпт агента"><b>${esc(l.title || m.title)}</b><small>инструкция ↗</small></a>` : `<b>${esc(l.title || m.title)}</b><small>${esc(l.skill || m.skill)}</small>`}</div>
         <div><div class="tgt">${l.status === 'running' ? `→ ${esc(bare(base(l.target || '')))}` : esc(status)}${wrote ? ` <small style="display:inline">· ${wrote} ф.</small>` : ''}</div><div class="bar"></div></div></div>`;
-    }).join('');
+    }).join('') + peopleHtml();
     document.getElementById('laneCount').textContent = `${active} в работе`;
   }
 
@@ -558,7 +637,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     }
     [...box.children].forEach((el, i) => { const cls = i < cur || S.phase === 'done' ? 'ph done' : i === cur ? 'ph now' : 'ph'; if (el.className !== cls) el.className = cls; });
     const ph = META.phases[cur];
-    document.getElementById('phaseLabel').textContent = S.phase === 'done' ? 'готово · папка собрана' : ph ? `шаг ${ph.id.slice(1)} · ${ph.title}` : 'шаг 00 · пустая папка';
+    document.getElementById('phaseLabel').textContent = NO_STEPS ? (SCENARIO_KIT ? 'папка группы' : 'своя папка') : S.phase === 'done' ? 'готово · папка собрана' : ph ? `шаг ${ph.id.slice(1)} · ${ph.title}` : 'шаг 00 · пустая папка';
     document.querySelector('#bar i').style.width = `${Math.min(100, progress * 100)}%`;
   }
   // a preview of every step: what it is, who does it, what lands in the folder
@@ -592,13 +671,14 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   }
   // why this step: what breaks without it, what it gives, one number with a source, where to start at home
   const tick = (t) => esc(t).replace(/`([^`]+)`/g, '<code>$1</code>');
-  function whyHtml(w) {
-    return w ? `<dl class="why"><dt>без этого</dt><dd>${tick(w.need)}</dd><dt>с этим</dt><dd>${tick(w.helps)}</dd>` +
+  // one thought per row: what breaks without the step, one number with its source, where to start at home
+  function whyHtml(w, short) {
+    return w ? `<dl class="why"><dt>без этого</dt><dd>${tick(w.need)}</dd>` +
       `<dt>цифра</dt><dd class="f">${tick(w.fact)} <a class="src" href="${esc(w.url)}" target="_blank" rel="noopener">${esc(w.src)} ↗</a></dd>` +
-      `<dt>у себя</dt><dd>${tick(w.yours)}</dd></dl>` : '';
+      (short ? '' : `<dt>у себя</dt><dd>${tick(w.yours)}</dd>`) + '</dl>' : '';
   }
   function howHtml(h) {
-    return h ? `<dl class="how"><dt>кто</dt><dd>${esc(h.who)}</dd><dt>агент</dt><dd>${esc(h.agent)}</dd><dt>берём</dt><dd>${esc(h.takes)}</dd><dt>кладём</dt><dd>${esc(h.puts)}</dd><dt>время</dt><dd>${esc(h.time)}</dd></dl>` : '';
+    return h ? `<p class="howl"><span>${esc(h.who)}</span><span>${esc(h.agent)}</span><span>${esc(h.time)}</span></p>` : '';
   }
   function renderNarr() {
     document.getElementById('narrText').textContent = S.narr || '–';
@@ -622,7 +702,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       if (askEl.dataset.key !== key) {
         askEl.dataset.key = key;
         askEl.innerHTML = (ph && ph.id ? `<div class="stp"><i>${ph.id.slice(1)}</i><b>${esc(ph.stop ? ph.stop.title : ph.title)}</b></div>` : '') +
-          (ph && ph.why ? `<div class="whyb"><span class="cap">зачем этот шаг</span>${whyHtml(ph.why)}</div>` : '') +
+          (ph && ph.why ? `<div class="whyb"><span class="cap">зачем этот шаг</span>${whyHtml(ph.why, true)}</div>` : '') +
           (ph ? howHtml(ph.how) : '') +
           (ph && ph.ask ? `<div class="ak"><span class="cap">запрос агенту на этом шаге</span><p class="ak-q">${esc(ph.ask)}</p></div>` : '') +
           sessHtml(ph) +
@@ -778,7 +858,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     $('pvMd').hidden = !(rich && isMd);
     $('pvFrame').hidden = !(rich && isHtml);
     if (!rich && !editing) $('pvBody').textContent = content;
-    if (rich && isMd) $('pvMd').innerHTML = mdRender(content);
+    if (rich && isMd) $('pvMd').innerHTML = (f && isRole(f.layer) && !editing ? roleCard(f) : '') + mdRender(content);
     if (rich && isHtml) {
       const frame = $('pvFrame');
       if (MODE === 'live' && !FSA && !editing) {
@@ -800,6 +880,24 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     $('pvSave').hidden = !editing;
     $('preview').classList.toggle('editing', editing);
     $('preview').classList.toggle('dirty', editing && PV.buffer !== PV.base);
+  }
+  // a role opens with its card: person or agent, the sessions it started, merged or ran, where the file lives
+  function roleSessions(f) {
+    const idx = resolveIndex();
+    return [...S.files.values()].filter((g) => g.layer === 'session' && (f.layer === 'agentrole'
+      ? (f.fm.lane && (g.fm.lane || g.fm.role) === f.fm.lane) || g.links.some((t) => idx.get(t) === f.path)
+      : g.links.some((t) => idx.get(t) === f.path))).sort((a, b) => a.path.localeCompare(b.path))
+      .map((g) => ({ path: g.path, how: f.layer === 'agentrole' ? 'вёл' : String(g.fm.launched_by || '').includes(bare(base(f.path))) ? 'запустил' : 'сливает' }));
+  }
+  function roleCard(f) {
+    const agent = f.layer === 'agentrole';
+    const empty = /ещё не описана/.test(f.fm.description || '');
+    const ss = roleSessions(f);
+    const r = MODE === 'replay' && !SCENARIO_KIT && remoteOf();
+    const gh = r ? `${r.base}/blob/${r.branch}/${(r.prefix + finalPath(f.path)).split('/').map(encodeURIComponent).join('/')}` : '';
+    return `<div class="rolecard${agent ? ' agent' : ''}"><div class="rc-h"><span class="rc-g">${agent ? '⬢' : '⬡'}</span><b>${agent ? 'роль · агент' : 'роль · человек'}</b>${empty ? '<i>карточка ещё не описана</i>' : ''}</div>` +
+      `<div class="rc-s"><span class="cap">сессии · ${ss.length}</span>${ss.length ? ss.map((x) => `<a data-p="${esc(x.path)}"><em>${x.how}</em> ${esc(bare(base(x.path)))}</a>`).join('') : '<span class="cap">пока ни одной</span>'}</div>` +
+      `<div class="rc-l">${gh ? `<a href="${esc(gh)}" target="_blank" rel="noopener">открыть на GitHub ↗</a>` : '<span class="cap">только на этом компьютере</span>'}</div></div>`;
   }
   function openPreview(p) {
     const f = S.files.get(p); if (!f) return;
@@ -913,7 +1011,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   });
 
   // ---------- phase stops: a plain-language card after each phase ----------
-  let STOPS = qs.get('stops') !== '0';
+  let STOPS = qs.get('stops') !== '0' && !NO_STEPS;
   let stopOpen = null, onStopGo = null;
   function setStops(v) { STOPS = v; $('stopsBtn').classList.toggle('on', v); $('stopsBtn').textContent = v ? 'стопы вкл' : 'стопы выкл'; }
   setStops(STOPS);
@@ -924,11 +1022,12 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const idx = resolveIndex();
     $('stNum').textContent = `шаг ${id.slice(1)} · ${ph.title}`;
     $('stHow').hidden = !ph.how;
-    if (ph.how) $('stHow').innerHTML = howHtml(ph.how).replace(/^<dl class="how">|<\/dl>$/g, '');
+    if (ph.how) $('stHow').innerHTML = howHtml(ph.how);
     $('stStep').textContent = `${i + 1} / ${META.phases.length}`;
     $('stTitle').textContent = ph.stop.title;
     $('stLead').innerHTML = mdInline(ph.stop.lead, idx);
-    $('stPoints').innerHTML = (ph.stop.points || []).map((x) => `<li>${mdInline(x, idx)}</li>`).join('');
+    // a card holds one thought per block: the points stay in the step preview and the kit
+    $('stPoints').innerHTML = ''; $('stPoints').hidden = true;
     $('stWhy').hidden = !ph.why;
     $('stWhy').innerHTML = ph.why ? `<b>зачем этот шаг</b>${whyHtml(ph.why)}` : '';
     const shown = files.filter((p) => S.files.has(p));
@@ -940,7 +1039,10 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     $('stSess').hidden = !(ph.sessions && ph.sessions.length);
     $('stSess').innerHTML = sessHtml(ph);
     $('stTree').innerHTML = stopTree(new Set(shown));
-    $('stFiles').innerHTML = shown.length ? `<b>${id === 'p02' ? 'переименовано' : 'появилось в папке'} · ${shown.length}</b><div class="chips">${shown.map((p) => `<a data-p="${esc(p)}" title="${esc(p)}">${LAYERS[layerAt(p)].glyph} ${esc(bare(base(p)))}</a>`).join('')}</div>` : '';
+    const ren = (ph.rename || []).filter((r) => S.files.has(r.to));
+    const added = shown.filter((p) => !ren.some((r) => r.to === p));
+    $('stFiles').innerHTML = (ren.length ? `<b>переименовано · ${ren.length}</b><ul class="renl">${ren.map((r) => `<li><s>${esc(r.from)}</s><a data-p="${esc(r.to)}">${esc(r.to)}</a></li>`).join('')}</ul>` : '') +
+      (added.length ? `<b>появилось в папке · ${added.length}</b><div class="chips">${added.map((p) => `<a data-p="${esc(p)}" title="${esc(p)}">${LAYERS[layerAt(p)].glyph} ${esc(bare(base(p)))}</a>`).join('')}</div>` : '');
     const nxt = META.phases[i + 1];
     $('stGo').textContent = nxt ? `дальше: ${nxt.title} →` : 'к финалу →';
     $('stOff').textContent = nxt ? 'остановиться здесь' : 'без карточек';
@@ -957,7 +1059,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const rank = (g) => { const i = FOLDER_ORDER.indexOf(g); return i < 0 ? 99 : i; };
     return `<div class="tt-h">папка сейчас · ${S.files.size} файлов</div>` + [...groups.keys()].sort((a, b) => rank(a) - rank(b)).map((g) => {
       const fs = groups.get(g).sort((a, b) => a.path.localeCompare(b.path));
-      return `<div class="tt-f">${g ? esc(g) + '/' : './'}</div>` + fs.map((f) => `<a class="tt-i${fresh.has(f.path) ? ' new' : ''}" data-p="${esc(f.path)}"><span class="g">${LAYERS[f.layer].glyph}</span>${esc(g ? f.path.slice(g.length + 1) : f.path)}</a>`).join('');
+      const ren = renamedNow();
+      return `<div class="tt-f">${g ? esc(g) + '/' : './'}</div>` + fs.map((f) => `<a class="tt-i${fresh.has(f.path) ? ' new' : ''}${ren.has(f.path) ? ' ren' : ''}" data-p="${esc(f.path)}"><span class="g">${LAYERS[f.layer].glyph}</span>${ren.has(f.path) ? `<s>${esc(ren.get(f.path).from)}</s> ` : ''}${esc(g ? f.path.slice(g.length + 1) : f.path)}</a>`).join('');
     }).join('');
   }
   function closeStop(go) {
@@ -1008,10 +1111,11 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const setPlay = (v) => { R.playing = v; btnPlay.textContent = v ? '❚❚' : '▶'; };
     function seek(t) {
       closeStop(false);
-      reset(); nodeById.clear(); gFx.selectAll('*').remove();
+      reset(); nodeById.clear(); gFx.selectAll('*').remove(); autoFit = true;
       R.t = Math.max(0, Math.min(t, sc.duration)); R.i = 0;
       while (R.i < sc.events.length && sc.events[R.i].at <= R.t) apply(sc.events[R.i++], false);
       if (R.t >= sc.duration) S.phase = 'done';
+      const t0 = now(); S.renLog.forEach((r, k) => { if (r.phase === S.phase) r.at = t0 + k * 220; });
       markDirty();
     }
     seekTo = (t) => { seek(t); setPlay(false); };
@@ -1063,7 +1167,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       window.addEventListener('keydown', function onIntroKey(e) { if ($('intro').hidden) { window.removeEventListener('keydown', onIntroKey, true); return; } if (e.key === 'Enter' || e.code === 'Space') { e.preventDefault(); e.stopPropagation(); $('inGo').click(); } }, true);
     }
     const startPhase = sc.phases.find((x) => x.id === qs.get('phase'));
-    if (qs.get('at') === 'end') { seek(sc.duration); setPlay(false); } else if (startPhase) { jumpToPhase(sc.phases.indexOf(startPhase)); } else setPlay(R.playing);
+    if (qs.get('at') === 'end' || NO_STEPS) { seek(sc.duration); setPlay(false); } else if (startPhase) { jumpToPhase(sc.phases.indexOf(startPhase)); } else setPlay(R.playing);
     function frame(t) {
       const dt = Math.min(200, t - R.last); R.last = t;
       if (R.playing) {
@@ -1112,7 +1216,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       $('inLead').textContent = 'своя папка – обычная папка на твоём компьютере. граф читает её файлы и меняется от любой правки: Obsidian, редактор, агент. на сайт папка не уходит.';
       if (SERVERLESS && !TEAM) $('inPoints').innerHTML = '<li>на сайте папку можно выбрать в браузере или перетащить из Finder: граф, поиск, правка файлов</li><li>агенты, коммиты, откат и Obsidian – в полном режиме: git clone и <code>bin/new.sh</code>, команды на следующем экране</li><li>две готовые папки: Лунная каменка – образец с GitHub; SLP\'26 – папка группы, только у ведущего</li>';
       if (TEAM) $('inPoints').innerHTML = '<li>граф собран из репозитория ai-mindset-org/marketing-harness-sprint: сервер команды проверяет его раз в 5 минут и публикует после каждого push</li><li>сессии агентов лежат в папке sessions/: кто запускал, что сделал, какие файлы тронул; клик по коммиту – что в нём</li><li>в строке папки – zip текущей папки и команда клонирования; правка и агенты – у себя: клон, bin/open.sh, коммит, push</li><li>клик по узлу открывает файл; ⌘K – поиск; пробел – заморозить картинку</li>';
-      if (SESSION) $('inPoints').innerHTML = '<li>каждая фигура – файл папки; граф меняется от любой правки: Obsidian, редактор, агент</li><li>панель «агенты» – роли: ▶ запускает роль, клик по статусу открывает сессию вживую; в консоли – готовые запросы, в том числе проверка git и приватных данных</li><li>шаги внизу – как эта папка росла: клик ведёт в историю шага</li><li>клик по коммиту – что в нём, «откатить», «форк с этого места»; у файла – «история» и возврат старой версии</li><li><kbd>⌘K</kbd> – поиск; пробел – заморозить картинку; Esc закрывает верхнее окно</li>';
+      if (SESSION) $('inPoints').innerHTML = '<li>каждая фигура – файл папки; граф меняется от любой правки: Obsidian, редактор, агент</li><li>панель «агенты» – роли: ▶ запускает роль, клик по статусу открывает сессию вживую; в консоли – готовые запросы, в том числе проверка git и приватных данных</li><li>клик по коммиту – что в нём, «откатить», «форк с этого места»; у файла – «история» и возврат старой версии</li><li><kbd>⌘K</kbd> – поиск; пробел – заморозить картинку; Esc закрывает верхнее окно</li>';
       $('inGo').textContent = 'открыть граф →'; $('inEnd').hidden = true;
       $('intro').hidden = false; $('inGo').focus();
       $('inGo').onclick = () => introClose();
@@ -1463,7 +1567,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   }, true);
 
   // ---------- intro: what this is, before the build starts ----------
-  const introWanted = qs.get('intro') !== '0' && !qs.get('at') && !qs.get('phase');
+  const introWanted = qs.get('intro') !== '0' && !qs.get('at') && !qs.get('phase') && !(MODE === 'replay' && SCENARIO_KIT);
   function introClose(go) {
     $('intro').hidden = true;
     if (go) go();
@@ -1517,7 +1621,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   const runWho = (r) => [LANE_META[r.role] && LANE_META[r.role].title, r.skill].filter(Boolean).join(' · ') || String(r.prompt || '').replace(/\s+/g, ' ').slice(0, 44) || r.id;
   function setBrand(name) {
     const h = document.querySelector('.brand h1'); if (h && name) h.textContent = `SLP harness · ${name}`;
-    const p = document.querySelector('.brand p'); if (p && name) p.textContent = SCENARIO_KIT ? 'папка группы · только на этом компьютере · внизу шаги, как она росла' : 'своя папка на этом компьютере · внизу шаги, как она росла';
+    const p = document.querySelector('.brand p'); if (p && name) p.textContent = SCENARIO_KIT ? 'папка группы · только на этом компьютере' : 'своя папка на этом компьютере';
   }
 
   async function launch(prompt, role) {
@@ -1548,7 +1652,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       const af = agentFileOf(id);
       return `<div class="lane ${st === 'running' ? 'running' : st === 'done' ? 'done' : st === 'failed' || st === 'stopped' ? 'waiting' : ''}"><i class="dot"></i><div>${af ? `<a class="open an" data-p="${esc(af.path)}" title="инструкция и промпт агента"><b>${m.title}</b><small>инструкция ↗</small></a>` : `<b>${m.title}</b><small>${m.skill}</small>`}</div>
         <div><div class="lrow"><a class="tgt${open ? ' open' : ''}${miss && !r ? ' miss' : ''}" ${open}>${esc(info)}</a>${btns}</div>${st === 'running' ? '<div class="bar"></div>' : ''}</div></div>`;
-    }).join('') + `<div class="cap">${SESSION ? `▶ – запуск роли · исполнитель ${esc($('cRunner').value)} · ${esc($('cModel').value)} (меняется в консоли) · клик по статусу – сессия` : TEAM ? 'последняя сессия каждой роли из sessions/ · запуск – в Local' : 'запуск ролей – в полном режиме Local: bin/open.sh'}</div>`;
+    }).join('') + peopleHtml() + `<div class="cap">${SESSION ? `▶ – запуск роли · исполнитель ${esc($('cRunner').value)} · ${esc($('cModel').value)} (меняется в консоли) · клик по статусу – сессия` : TEAM ? 'последняя сессия каждой роли из sessions/ · запуск – в Local' : 'запуск ролей – в полном режиме Local: bin/open.sh'}</div>`;
     $('laneCount').textContent = `${active} в работе`;
   }
   $('lanes').addEventListener('click', async (e) => {
@@ -1760,7 +1864,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   // links grouped by layer with counts, at most 12 per group
   function linkGroups(paths) {
     const g = new Map();
-    for (const p of paths) { const L = layerOf(p); if (!g.has(L)) g.set(L, []); g.get(L).push(p); }
+    for (const p of paths) { const L = layerAt(p); if (!g.has(L)) g.set(L, []); g.get(L).push(p); }
     return [...g].map(([L, ps]) => `<span class="lg"><i>${LAYERS[L].glyph} ${LAYERS[L].label} ${ps.length}</i>${ps.slice(0, 12).map((x) => `<a data-p="${esc(x)}" title="${esc(x)}">${esc(base(x).replace(/^\{[a-z-]+\}\s+/, ''))}</a>`).join('')}${ps.length > 12 ? `<em>…ещё ${ps.length - 12}</em>` : ''}</span>`).join('');
   }
 

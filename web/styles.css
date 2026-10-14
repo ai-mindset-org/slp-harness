@@ -803,3 +803,97 @@ dl.why code{background:var(--hair); padding:0 3px; font-size:12px}
 #stop .st-ft{position:sticky; bottom:-14px; background:var(--bg); padding-bottom:4px; z-index:1}
 #setup .su-w{margin:4px 0 6px; font-size:12px; line-height:1.45}
 #setup .su-w i{font-style:normal; font-family:var(--mono); font-size:10px; color:var(--accent); margin-right:6px}
+
+/* 14.10 · граф читается целиком: подписи легче, мелкие узлы серее, главное заметнее */
+.node text{font-weight:400; fill:#333}
+.node.L-context text,.node.L-competitor text,.node.L-channel text,.node.L-segment text,.node.L-session text,.node.L-output text,.node.L-eval text,.node.L-automation text,.node.L-dashboard text,.node.L-code text{fill:#8a8a8a; font-size:9px}
+.node.L-hub text,.node.L-section text,.node.main text{font-size:11px; font-weight:600; fill:var(--ink)}
+.node.L-role text,.node.L-agentrole text{font-weight:500; fill:var(--ink)}
+.node.main path{stroke-width:2.2px}
+#graph.dense .node.L-raw text,#graph.dense .node.L-role text,#graph.dense .node.L-agentrole text,#graph.dense .node.agent text,#graph.dense .node.main text{display:block}
+.node.agent text{font-weight:600}
+/* своя папка: без полосы шагов и строки «сейчас» */
+body.nosteps #tl,body.nosteps #narr,body.nosteps #phPrev{display:none !important}
+/* папки в дереве сворачиваются */
+#tree .fold{cursor:pointer; user-select:none; display:flex; gap:6px; align-items:baseline}
+#tree .fold::before{content:'▾'; color:var(--muted); width:10px; display:inline-block}
+#tree .fold.shut::before{content:'▸'}
+#tree .fold:hover b{color:var(--accent)}
+#tree .fold i{font-style:normal; color:var(--accent)}
+/* шаг 02: сырое имя зачёркнуто, под ним имя по правилу */
+.file.ren{align-items:start}
+.file .rn{display:grid; gap:1px}
+.file .rn s{position:relative; text-decoration:none; color:var(--muted); font-size:10.5px; justify-self:start}
+.file .rn s::after{content:''; position:absolute; left:0; right:0; top:55%; height:1.5px; background:var(--accent); transform-origin:left; animation:strike .6s var(--ease) both; animation-delay:calc(var(--d) + .2s)}
+.file .rn em{font-style:normal; color:var(--ink); animation:renin .5s var(--ease) both; animation-delay:calc(var(--d) + .8s)}
+.file .rn em::before{content:'→ '; color:var(--accent)}
+@keyframes strike{from{transform:scaleX(0)} to{transform:scaleX(1)}}
+@keyframes renin{from{opacity:0; transform:translateX(-6px)} to{opacity:1; transform:none}}
+
+/* роли: человек и агент */
+.rolecard{border:1px solid var(--ink); padding:9px 11px; margin:0 0 12px; display:grid; gap:7px; background:var(--paper)}
+.rolecard.agent{border-left:3px solid var(--accent)}
+.rc-h{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+.rc-h .rc-g{font-size:16px; line-height:1}
+.rolecard.agent .rc-g{color:var(--accent)}
+.rc-h b{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase}
+.rc-h i{font-style:normal; font-size:12px; color:var(--accent); border:1px dashed var(--accent); padding:0 6px}
+.rc-s{display:flex; flex-wrap:wrap; gap:4px 10px; align-items:baseline; font-size:12px}
+.rc-s .cap{margin:0}
+.rc-s a{cursor:pointer; color:var(--ink); text-decoration:none; border-bottom:1px solid var(--soft)}
+.rc-s a:hover{border-color:var(--accent)}
+.rc-s em{font-style:normal; font-family:var(--mono); font-size:10px; color:var(--muted)}
+.rc-l a{font-size:12px; color:var(--ink); text-decoration:none; border-bottom:1px solid var(--accent)}
+.rc-l .cap{margin:0}
+.rolecard + .props{font-size:10.5px}
+.people{display:flex; flex-wrap:wrap; gap:4px 6px; padding:7px 0 2px; border-top:1px dashed var(--soft); margin-top:4px}
+.people .cap{flex-basis:100%; margin:0 0 2px; letter-spacing:.12em; text-transform:uppercase; font-size:9.5px}
+.people a.pp{cursor:pointer; text-decoration:none; color:var(--ink); border:1px solid var(--soft); padding:2px 7px; font-size:12px; display:inline-flex; gap:6px; align-items:baseline}
+.people a.pp:hover{border-color:var(--ink)}
+.people a.pp.empty{border-style:dashed; color:#555}
+.people a.pp small{font-size:10px; color:var(--accent)}
+/* сессия шага: кто запустил */
+.sess .se{display:flex; flex-wrap:wrap; gap:4px 8px; align-items:baseline}
+.sess .se-by{color:var(--ink); font-weight:600; border:1px solid var(--ink); padding:0 5px}
+.sess .se-j{margin-left:auto}
+
+/* карточки шагов: одна мысль на блок, крупнее */
+#stop h3{font-size:30px; line-height:1.12}
+#stLead{font-size:17px; line-height:1.5; margin:8px 0 4px}
+#stWhy{margin:12px 0 8px; padding:10px 14px}
+#stWhy dl.why{font-size:15px; grid-template-columns:84px minmax(0,1fr); gap:8px 14px}
+#stWhy dl.why dt{font-size:10.5px; padding-top:4px}
+#stWhy dl.why a.src{font-size:11px}
+#stHow{display:block; margin:8px 0 0; padding:0; border:none}
+.howl{display:flex; flex-wrap:wrap; gap:4px; margin:0; font-size:13px; line-height:1.35}
+.howl span{background:var(--hair); padding:3px 8px}
+.howl span:first-child{background:var(--ink); color:#fff}
+#stAsk p{font-size:15px; line-height:1.5}
+#stSess .sess{font-size:13px}
+#stFiles{font-size:13px; margin-top:8px}
+#stFiles>b{display:block; font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:8px 0 4px}
+.renl{list-style:none; margin:0; padding:0; display:grid; gap:3px}
+.renl li{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.4fr); gap:10px; align-items:baseline; font-size:13px}
+.renl s{color:var(--muted); text-decoration-color:var(--accent); text-decoration-thickness:1.5px}
+.renl a{cursor:pointer; color:var(--ink); font-family:var(--mono); font-size:12px}
+.renl a::before{content:'→ '; color:var(--accent)}
+#stTree .tt-i.ren s{color:var(--muted); text-decoration-color:var(--accent); margin-right:4px}
+/* правая колонка: шаг крупнее */
+.stp b{font-size:17px}
+.whyb dl.why{font-size:13px; grid-template-columns:62px minmax(0,1fr)}
+#ask .howl{font-size:12px}
+.ak-q{font-size:13.5px}
+/* подписи не мельчают, когда граф вписан целиком; планы без подписи, пока на них не навели */
+#graph .node text{font-size:calc(9.5px * var(--inv, 1))}
+#graph.dense .node text{font-size:calc(8.5px * var(--inv, 1))}
+#graph .node.L-context text,#graph .node.L-competitor text,#graph .node.L-channel text,#graph .node.L-segment text,#graph .node.L-session text,#graph .node.L-output text,#graph .node.L-eval text,#graph .node.L-automation text,#graph .node.L-dashboard text,#graph .node.L-code text{font-size:calc(8.5px * var(--inv, 1))}
+#graph .node.L-hub text,#graph .node.L-section text,#graph .node.main text{font-size:calc(11px * var(--inv, 1))}
+#graph .node.ghost text{display:none}
+#graph.hovering .node.ghost:not(.dim) text{display:block}
+@media (max-width:760px){
+  #stop h3{font-size:25px}
+  #stLead{font-size:15.5px}
+  #stWhy dl.why{grid-template-columns:minmax(0,1fr); gap:2px 0; font-size:14px}
+  #stWhy dl.why dd{margin-bottom:6px}
+  .renl li{grid-template-columns:minmax(0,1fr)}
+}
