@@ -1810,6 +1810,21 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     $('narrText').textContent = LIVE_FROZEN ? 'граф заморожен: папка меняется, картинка стоит. пробел – продолжить' : S.narr || '–';
   }, true);
 
+  // ---------- «как это устроено»: the header button, ? or h opens, Esc closes; keys under it stay still ----------
+  const howOpen = (v) => { $('howto').hidden = !v; if (v) $('howClose').focus({ preventScroll: true }); };
+  $('howBtn').onclick = () => howOpen(true);
+  $('howClose').onclick = () => howOpen(false);
+  $('howto').addEventListener('click', (e) => { if (e.target === $('howto')) howOpen(false); });
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (!$('howto').hidden) {
+      if (e.key === 'Escape' || e.key === '?' || e.key === 'h') howOpen(false);
+      if (!['Tab', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home'].includes(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); }
+      return;
+    }
+    if ((e.key === '?' || e.key === 'h') && $('search').hidden && $('setup').hidden) { e.preventDefault(); e.stopImmediatePropagation(); howOpen(true); }
+  }, true);
+
   // ---------- Esc closes the top open layer: search · intro · phase card · new file · file panel ----------
   window.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;

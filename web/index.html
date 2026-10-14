@@ -24,7 +24,7 @@
   <div class="navs">
     <nav class="modes" aria-label="режим"><button type="button" data-mode="replay" title="папка растёт по шагам на глазах">история</button><button type="button" data-mode="live" title="открыть настоящую папку с этого компьютера">своя папка</button></nav>
     <button id="searchBtn" class="search" title="поиск по файлам и шагам · ⌘K">⌕ <kbd>⌘K</kbd></button>
-    <button type="button" id="setupBtn" class="pagelink go">свой бизнес</button><a class="pagelink" id="ghLink" href="https://github.com/ai-mindset-org/slp-harness" target="_blank" rel="noopener">GitHub ↗</a>
+    <button type="button" id="setupBtn" class="pagelink go">свой бизнес</button><button type="button" id="howBtn" class="pagelink" title="как это устроено · ? или h">как устроено</button><a class="pagelink" id="ghLink" href="https://github.com/ai-mindset-org/slp-harness" target="_blank" rel="noopener">GitHub ↗</a>
   </div>
   <div class="clock"><b id="phaseLabel">00 · пустая папка</b><span id="clock">00:00</span></div>
 </header>
@@ -182,6 +182,97 @@
       <button id="stOff" type="button" title="смотреть без остановок">без карточек</button>
       <span class="sp"></span>
       <button id="stGo" type="button" class="go">продолжить →</button>
+    </div>
+  </div>
+</div>
+
+<div id="howto" hidden role="dialog" aria-modal="true" aria-label="как это устроено">
+  <div class="box">
+    <div class="st-hd"><span>как это устроено · <kbd>?</kbd> или <kbd>h</kbd> открыть · <kbd>Esc</kbd> закрыть</span><button type="button" id="howClose" aria-label="закрыть">×</button></div>
+    <h3>папка компании, которую читают люди и агенты</h3>
+    <div class="hw">
+      <section>
+        <h4>01 · как установить</h4>
+        <p>нужны git и Node.js 18+. три команды в Терминале:</p>
+        <pre>git clone https://github.com/ai-mindset-org/slp-harness.git ~/slp-harness
+~/slp-harness/bin/new.sh
+~/slp-harness/bin/open.sh &lt;папка&gt;</pre>
+        <p><code>new.sh</code> кладёт свежую копию образца бани, <code>open.sh</code> открывает граф любой папки на localhost.</p>
+        <p>без установки: «своя папка» → «выбрать папку» в Chrome, Arc или Edge. граф, поиск и правка файлов прямо в браузере.</p>
+      </section>
+      <section>
+        <h4>02 · как это работает</h4>
+        <ul>
+          <li>папка – обычные файлы на диске</li>
+          <li>git помнит каждую версию: любую правку можно откатить</li>
+          <li>граф рисует файлы и ссылки между ними</li>
+          <li>агент сначала читает AGENTS.md и правила из rules/</li>
+          <li>потом пишет файлы в папку и оставляет журнал в sessions/</li>
+          <li>каждое изменение – отдельный коммит, человек его принимает</li>
+        </ul>
+      </section>
+      <section>
+        <h4>03 · открыть на любом устройстве</h4>
+        <p>это обычные файлы. их открывают:</p>
+        <ul>
+          <li>Finder и любой редактор</li>
+          <li>Obsidian: ссылки между файлами работают</li>
+          <li>VS Code, Cursor</li>
+          <li>GitHub: история и ветки агентов</li>
+          <li>телефон: Obsidian или приложение GitHub</li>
+        </ul>
+      </section>
+      <section>
+        <h4>04 · имена файлов</h4>
+        <p>одно правило: <code>{тип} описание – дата</code>. дата в конце, если файл про событие. тип подсказывает папку.</p>
+        <table>
+          <tr><th>было</th><th>стало · шаг 02</th></tr>
+          <tr><td>отзывы финал_финал.docx</td><td>sources/{source} отзывы – сентябрь 2026.md</td></tr>
+          <tr><td>брони сентябрь (2).xlsx</td><td>sources/{source} брони – сентябрь 2026.md</td></tr>
+          <tr><td>Новая запись 3.txt</td><td>sources/{source} разговор с владельцем – 2026-10-01.md</td></tr>
+          <tr><td>владелец.md</td><td>people/{role} владелец.md</td></tr>
+        </table>
+        <p>по имени человек и агент находят файл без поиска и сразу видят, свежий ли он.</p>
+      </section>
+      <section>
+        <h4>05 · скиллы: правило, которое запускается</h4>
+        <p>скилл – папка <code>skills/&lt;имя&gt;/SKILL.md</code>: когда запускать, что читать, что положить в папку. агент видит имя и описание, целиком читает скилл, когда задача совпала.</p>
+        <ul>
+          <li><b>review-replies</b> – черновики ответов на отзывы в голосе бренда, отправляет администратор</li>
+          <li><b>slot-price</b> – цена слота в калькуляторе прайсинга, предложение в asks/, цену меняет управляющий</li>
+          <li><b>weekly-slice</b> – срез недели в dashboards/ к планёрке понедельника</li>
+          <li><b>publics-radar</b> – где разместиться: паблики с оценкой 1–5 и срез «радар пабликов»</li>
+        </ul>
+        <p>проверки лежат в checks/: задачи по правилам, паспорт против правил, <code>check-git-private.sh</code> – всё ли в git и нет ли телефонов, почт и ключей.</p>
+      </section>
+      <section>
+        <h4>06 · агенты додумывают</h4>
+        <p>когда в папке нет факта, модель заполняет пробел правдоподобным текстом. это галлюцинация.</p>
+        <ul>
+          <li>у каждой цифры – источник и дата</li>
+          <li>нет факта – агент пишет «уточнить» или «не найдено»</li>
+          <li>проверки из checks/ ищут пустые места и расхождения</li>
+          <li>решение принимает человек</li>
+        </ul>
+      </section>
+      <section class="wide">
+        <h4>07 · словарь</h4>
+        <dl>
+          <dt>папка</dt><dd>все файлы компании в одном месте, на диске и в git</dd>
+          <dt>контекст</dt><dd>карточки о компании, гостях, рынке: context/</dd>
+          <dt>сырьё</dt><dd>выгрузки, записи, отзывы как есть: sources/</dd>
+          <dt>роль</dt><dd>кто за что отвечает, человек или агент: people/</dd>
+          <dt>агент</dt><dd>AI-модель, которая читает папку и пишет в неё файлы</dd>
+          <dt>сессия</dt><dd>один запуск агента: что прочитал, что создал, журнал в sessions/</dd>
+          <dt>скилл</dt><dd>навык агента одним файлом, запускается по имени</dd>
+          <dt>срез</dt><dd>дашборд на один вопрос одного человека: dashboards/</dd>
+          <dt>коммит</dt><dd>сохранённая версия папки с подписью, кто и что поменял</dd>
+          <dt>AGENTS.md</dt><dd>первый файл, который читает агент: правила папки</dd>
+          <dt>YAML</dt><dd>шапка файла между <code>---</code>: тип, описание, дата</dd>
+          <dt>галлюцинация</dt><dd>правдоподобный текст без источника, который модель придумала</dd>
+          <dt>harness</dt><dd>папка, правила, скиллы и проверки вокруг агента: всё, что держит его работу в рамке</dd>
+        </dl>
+      </section>
     </div>
   </div>
 </div>
