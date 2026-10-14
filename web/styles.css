@@ -810,7 +810,7 @@ dl.why code{background:var(--hair); padding:0 3px; font-size:12px}
 .node.L-hub text,.node.L-section text,.node.main text{font-size:11px; font-weight:600; fill:var(--ink)}
 .node.L-role text,.node.L-agentrole text{font-weight:500; fill:var(--ink)}
 .node.main path{stroke-width:2.2px}
-#graph.dense .node.L-raw text,#graph.dense .node.L-role text,#graph.dense .node.L-agentrole text,#graph.dense .node.agent text,#graph.dense .node.main text{display:block}
+#graph.dense .node.L-raw text,#graph.dense .node.L-skill text,#graph.dense .node.L-role text,#graph.dense .node.L-agentrole text,#graph.dense .node.agent text,#graph.dense .node.main text{display:block}
 .node.agent text{font-weight:600}
 /* своя папка: без полосы шагов и строки «сейчас» */
 body.nosteps #tl,body.nosteps #narr,body.nosteps #phPrev{display:none !important}

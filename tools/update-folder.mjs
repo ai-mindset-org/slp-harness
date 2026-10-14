@@ -38,7 +38,7 @@ const files = [];
 })('');
 const oldList = new Set(git('ls-tree', '-r', '--name-only', since, '--', 'kit/files').split('\n').filter(Boolean).map((p) => p.replace(/^kit\/files\//, '')));
 const oldText = (rel) => { if (!oldList.has(rel)) return null; try { return git('show', `${since}:kit/files/${rel}`); } catch { return null; } };
-const isText = (rel) => /\.(md|json|mjs|js|css|html|txt|canvas|sh)$|^\.githooks\//.test(rel);
+const isText = (rel) => /\.(md|json|mjs|js|css|html|txt|canvas|sh|ya?ml)$|^\.githooks\//.test(rel);
 
 const out = { added: [], updated: [], same: 0, edited: [], deleted: [] };
 for (const rel of files) {

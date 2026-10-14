@@ -424,7 +424,7 @@ function runDetail(id) {
 }
 
 // ---------- human edits, history, revert, fork ----------
-const EDITABLE = /\.(md|json|css|html|mjs|canvas|txt)$/;
+const EDITABLE = /\.(md|json|css|html|mjs|canvas|txt|ya?ml)$/;
 function inside(rel) {
   const clean = String(rel || '').replace(/^\/+/, '');
   const full = path.resolve(dir, clean);

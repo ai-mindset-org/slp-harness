@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 
 const SKIP_DIRS = new Set(['.git', '.obsidian', '.claude', '.agents', '.harness', 'node_modules', '.trash']);
 const KEEP_DOT_FILES = new Set(['.mcp.json']);
-const SHOW = /\.(md|json|canvas|css|html|mjs)$/;
+const SHOW = /\.(md|json|canvas|css|html|mjs|ya?ml)$/;
 const MAX_CONTENT = 20000;
 
 export function walk(base, rel = '', out = []) {

@@ -53,7 +53,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     channel:    { label: 'канал',      sym: 'chev',     fill: false,   size: 150, glyph: '➤', ax: 0.66,  ay: 0.0 },
     tool:       { label: 'инструмент', sym: 'triangle', fill: false,   size: 150, glyph: '△', ax: 0.92,  ay: 0.12 },
     guide:      { label: 'гайд',       sym: 'asterisk', fill: false,   size: 130, glyph: '✳', ax: -0.34, ay: 0.32 },
-    skill:      { label: 'скилл',      sym: 'circle',   fill: false,   size: 150, glyph: '○', ax: 0.06,  ay: 0.12 },
+    skill:      { label: 'скилл',      sym: 'pentagon', fill: 'hair',  size: 190, glyph: '⬠', ax: -0.36, ay: 0.12 },
     agent:      { label: 'агент',      sym: 'circle',   fill: 'accent', size: 240, glyph: '●', ax: 0.0,  ay: 0.5 },
     output:     { label: 'задача',     sym: 'square',   fill: 'hair',  size: 150, glyph: '▢', ax: 0.2,   ay: 0.86 },
     eval:       { label: 'проверка',   sym: 'triangle', fill: true,    size: 150, glyph: '▲', ax: 0.52,  ay: 0.82 },
@@ -77,8 +77,10 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   const hourglass = { draw(c, size) { const a = Math.sqrt(size) / 2; c.moveTo(-a, -a); c.lineTo(a, -a); c.lineTo(-a, a); c.lineTo(a, a); c.closePath(); } };
   const play = { draw(c, size) { const a = Math.sqrt(size) / 1.8; c.moveTo(-a * 0.8, -a); c.lineTo(a, 0); c.lineTo(-a * 0.8, a); c.closePath(); } };
   const gate = { draw(c, size) { const a = Math.sqrt(size) / 2; c.moveTo(-a, a); c.lineTo(-a, -a); c.lineTo(a, -a); c.lineTo(a, a); c.moveTo(-a * 0.35, a); c.lineTo(-a * 0.35, -a * 0.2); c.lineTo(a * 0.35, -a * 0.2); c.lineTo(a * 0.35, a); } };
+  // a skill: a pentagon, a packed piece of know-how the agent opens only when needed
+  const pentagon = { draw(c, size) { const r = Math.sqrt(size / 2.378); for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k * 2 * Math.PI) / 5; c[k ? 'lineTo' : 'moveTo'](r * Math.cos(a), r * Math.sin(a)); } c.closePath(); } };
   const chev = { draw(c, size) { const a = Math.sqrt(size) / 1.7; c.moveTo(-a, -a); c.lineTo(a * 0.9, 0); c.lineTo(-a, a); c.lineTo(-a * 0.35, 0); c.closePath(); } };
-  const SYM = { chev, hexagon, hourglass, gate, play, diamond: d3.symbolDiamond, square: d3.symbolSquare, triangle: d3.symbolTriangle, circle: d3.symbolCircle, wye: d3.symbolWye,
+  const SYM = { chev, hexagon, pentagon, hourglass, gate, play, diamond: d3.symbolDiamond, square: d3.symbolSquare, triangle: d3.symbolTriangle, circle: d3.symbolCircle, wye: d3.symbolWye,
     cross: d3.symbolCross, star: d3.symbolStar, times: d3.symbolTimes || d3.symbolCross, asterisk: d3.symbolAsterisk || d3.symbolStar };
   const FOLDER_ORDER = ['', 'context', 'sources', 'meetings', 'asks', 'rules', 'people', 'tools', 'tasks', 'checks', 'routines', 'dashboards', 'guides', 'company', 'audience', 'competitors', 'channels', 'metrics', 'tracks', 'classes', 'clusters', 'participants', 'guests', 'skills', 'sessions'];
   const LANE_ORDER = ['secretary', 'dispatcher', 'researcher', 'checker'];
@@ -108,7 +110,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   const CHANNELS = [['linkedin', 'LinkedIn'], ['telegram', 'Telegram'], ['carousel', 'карусель'], ['landing', 'лендинг']];
 
   function layerOf(p) {
-    if (/^(context|company|sources|meetings|asks|rules|people|audience|participants|guests|competitors|channels|tools|guides|tasks|checks|routines|dashboards|metrics)\/README\.md$/.test(p)) return 'section';
+    if (/^(context|company|sources|meetings|asks|rules|people|audience|participants|guests|competitors|channels|tools|guides|tasks|checks|routines|dashboards|metrics|skills)\/README\.md$/.test(p)) return 'section';
     if (p === 'README.md' || p === 'CLAUDE.md' || p === 'AGENTS.md') return 'hub';
     if (p === '.mcp.json') return 'tool';
     const top = p.split('/')[0];
@@ -121,7 +123,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   }
   // `type:` in frontmatter beats the folder: a course vault can keep any folder names
   const TYPE_LAYER = { context: 'context', company: 'context', source: 'raw', guide: 'guide', meeting: 'source', ask: 'research', rule: 'rule', role: 'role', segment: 'segment', competitor: 'competitor',
-    channel: 'channel', tool: 'tool', task: 'output', check: 'eval', metric: 'eval', routine: 'automation', dashboard: 'dashboard', class: 'cls', track: 'track',
+    channel: 'channel', tool: 'tool', task: 'output', check: 'eval', metric: 'eval', routine: 'automation', dashboard: 'dashboard', class: 'cls', track: 'track', skill: 'skill',
     cluster: 'cluster', person: 'person', participant: 'person', guest: 'guest', speaker: 'guest', hub: 'hub' };
   const layerAt = (p) => (S.files.get(p) || {}).layer || layerOf(p);
   const isRole = (l) => l === 'role' || l === 'agentrole';
@@ -148,7 +150,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     if (layer === 'role' && isAgentKind(fm)) layer = 'agentrole';
     const isMd = path.endsWith('.md');
     let title = bare(base(path));
-    if (layer === 'skill') title = fm.name || title;
+    if (layer === 'skill') title = ((/^#\s+(.+)$/m.exec((content || '').replace(/^---\n[\s\S]*?\n---/, '')) || [])[1] || fm.name || title).trim();
     if (layer === 'section') title = fm.title || path.split('/')[0];
     if (layer === 'nucleus') title = fm.id || title.split(' ')[0];
     if (layer === 'output') title = (path.includes('/covers/') ? '3:1 ' : '') + title.split(' ').slice(0, path.includes('/landing/') ? 3 : 1).join(' ') + (path.endsWith('.html') ? ' ⧉' : '');
@@ -268,7 +270,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   const VERTICAL = new Set(['source', 'research', 'eval', 'dashboard', 'raw', 'agentrole']);
   const KIND_AT = { паспорт: [-0.3, -0.42], сегмент: [0.34, -0.94], кластер: [0.34, -0.94], конкурент: [0.46, -0.72], участник: [0.46, -0.72], канал: [0.5, -0.48], гость: [0.5, -0.48] };
   const SEC_AT = { context: 'context', company: 'context', sources: 'raw', meetings: 'source', asks: 'research', rules: 'rule', people: 'role', audience: 'segment', competitors: 'competitor',
-    channels: 'channel', tools: 'tool', guides: 'guide', tasks: 'output', checks: 'eval', routines: 'automation', dashboards: 'dashboard', metrics: 'eval', participants: 'person', guests: 'guest' };
+    channels: 'channel', tools: 'tool', guides: 'guide', tasks: 'output', checks: 'eval', routines: 'automation', dashboards: 'dashboard', metrics: 'eval', participants: 'person', guests: 'guest', skills: 'skill' };
   function anchor(d) {
     const L0 = LAYERS[d.layer];
     const K = d.layer === 'context' && d.file && KIND_AT[d.file.kind];
@@ -313,7 +315,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       nodes.push({ id: aid, layer: 'agent', title: l.title || LANE_META[id].title, lane: id, running: l.status === 'running' });
       const kind = l.status === 'running' ? 'agent' : 'agent-idle';
       const wantSkill = l.skill || LANE_META[id].skill;
-      const skillFile = [...S.files.values()].find((f) => f.layer === 'skill' && f.title === wantSkill);
+      const skillFile = [...S.files.values()].find((f) => f.layer === 'skill' && (f.title === wantSkill || f.fm.name === wantSkill));
       if (skillFile) links.push({ source: aid, target: skillFile.path, kind });
       const af = agentFileOf(id);
       if (af) { links.push({ source: aid, target: af.path, kind: 'instr' }); nodes[nodes.length - 1].afile = af.path; }
@@ -405,7 +407,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     gFx.selectAll('circle.ring').attr('cx', (d) => d.x).attr('cy', (d) => d.y);
   }
   // labels that stay on in a dense graph: sources, roles, agents and the main files
-  const LABELED = new Set(['hub', 'section', 'raw', 'role', 'agentrole', 'agent']);
+  const LABELED = new Set(['hub', 'section', 'raw', 'role', 'agentrole', 'agent', 'skill']);
   function fitStep() {
     if (!autoFit || !nodeSel) return;
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
@@ -633,7 +635,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       const sk = skillsOf(f.path);
       const state = st.map((t) => `${t.ready ? '●' : '○'} ${esc(t.what)}${!t.ready && t.env ? ` · <code>export ${esc(t.env)}=…</code>` : ''}`).join(' · ');
       return `<div class="trow ${ok ? 'ok' : st.length ? '' : 'link'}" data-p="${esc(f.path)}"><i></i><b>${esc(f.title)}</b><span>${esc(why)}</span>
-        <div class="sub">${state ? `${state}<br>` : ''}<a class="set" data-p="${esc(f.path)}">как настроить →</a>${slug === 'lms' ? ' <a href="https://learn.aimindset.org/cabinet/api-keys" target="_blank" rel="noopener">ключ в LMS ↗</a>' : ''}${sk.length ? ` · скиллы: ${sk.map((x) => `<a data-p="${esc(x)}">${esc(bare(base(x)))}</a>`).join('')}` : ''}</div></div>`;
+        <div class="sub">${state ? `${state}<br>` : ''}<a class="set" data-p="${esc(f.path)}">как настроить →</a>${slug === 'lms' ? ' <a href="https://learn.aimindset.org/cabinet/api-keys" target="_blank" rel="noopener">ключ в LMS ↗</a>' : ''}${sk.length ? ` · скиллы: ${sk.map((x) => `<a data-p="${esc(x)}">${esc((S.files.get(x) || {}).title || bare(base(x)))}</a>`).join('')}` : ''}</div></div>`;
     }).join('') + `<div class="cap">${toolsLive ? 'статус – задан ли ключ на этом компьютере, значения не видны · ' : 'статус ключей виден в полном режиме (bin/open.sh) · '}все инструкции: <a href="access.html">About</a></div>`;
   }
 
@@ -1332,7 +1334,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   let FSA = null; // FileSystemDirectoryHandle of a folder picked in the browser
   const fsaCache = new Map();
   const FSA_SKIP = new Set(['.git', '.obsidian', '.claude', '.agents', '.harness', 'node_modules', '.trash']);
-  const SHOW_RE = /\.(md|json|canvas|css|html|mjs)$/;
+  const SHOW_RE = /\.(md|json|canvas|css|html|mjs|ya?ml)$/;
   async function fsaRead(fh, r, out) {
     const f = await fh.getFile();
     const c = fsaCache.get(r);
