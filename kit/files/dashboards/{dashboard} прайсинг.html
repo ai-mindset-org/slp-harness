@@ -164,6 +164,19 @@ function segs(){$('cs').innerHTML=SL.map((s,i)=>`<button class="chip${i===slot?'
 segs();['cd','cr','s'].forEach(id=>$(id)&&$(id).addEventListener('input',draw));draw();
 })();
 </script>
+<section class="pg" id="pg"></section>
+<script>
+(function(){const cap=t=>{const m=/(?:на|до)\s*(\d+)(?:[–-](\d+))?/.exec(t||'');return m?+(m[2]||m[1]):0};
+  const rows=D.comps.filter(c=>c.ph&&cap(c.ph_d)).map(c=>({n:c.name,ph:c.ph,g:cap(c.ph_d),d:c.ph_d,v:Math.round(c.ph/cap(c.ph_d)),extra:/билет/.test(c.ph_d)}));
+  const us={n:D.ours.name,ph:D.ours.ph,g:6,d:D.ours.ph_d,v:Math.round(D.ours.ph/6),us:1};
+  const all=[...rows,us].sort((a,b)=>a.v-b.v),mx=Math.max(...all.map(r=>r.v)),cheaper=rows.filter(r=>r.v<us.v).length;
+  const fmt=n=>n.toLocaleString('ru-RU')+' ₽';
+  document.getElementById('pg').innerHTML=`<div class="k">разрез · цена гостя-часа: час зала ÷ гостей в зале</div>
+  <p class="cap">гость считает, сколько заплатит сам: час зала делится на всех. у нас ${fmt(us.v)} с гостя в час на шестерых в будни; дешевле – у ${cheaper} из ${rows.length} соседей, у которых известна вместимость зала.</p>
+  <div class="pgl">${all.map(r=>`<div class="pgr${r.us?' us':''}"><span>${r.n}</span><i style="--w:${(r.v/mx*100).toFixed(0)}%"></i><b>${fmt(r.v)}</b><small>${fmt(r.ph)} · ${r.d}</small></div>`).join('')}</div>
+  <p class="cap">вместимость – верхняя граница из описания цены («на 6», «до 8», «на 12–15»); где вместимость не указана, баня в разрез не попала. цены как опубликованы на 08.10.2026.</p>`;})();
+</script>
+<style>.pg{margin-top:16px;border-top:1px solid var(--ink);padding-top:10px}.pgl{margin:8px 0}.pgr{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,2fr) 90px minmax(0,1.6fr);gap:10px;align-items:center;padding:5px 0;border-top:1px solid var(--hair);font-size:12.5px}.pgr i{display:block;height:6px;background:var(--hair);position:relative}.pgr i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);background:var(--ink)}.pgr.us{color:var(--acc);font-weight:600}.pgr.us i::after{background:var(--acc)}.pgr b{font-variant-numeric:tabular-nums;text-align:right}.pgr small{color:var(--muted);font-size:11px}@media (max-width:760px){.pgr{grid-template-columns:1fr 80px}.pgr i,.pgr small{display:none}}</style>
 <details class="meth"><summary><span class="k">методика</span> Сколько стоит час частного номера у меня относительно соседей и где мой прайс выходит за медиану?</summary>
 <dl><dt>источники</dt><dd><ul><li><a href="https://usbani.ru/price" target="_blank" rel="noopener">Страницы цен на сайтах бань</a> – цена за час номера по будням и выходным, число гостей в тарифе, доплаты за человека</li><li><a href="https://rzhevskie-bani.obiz.ru/price/" target="_blank" rel="noopener">Прайсы на obiz и аналогах</a> – резервный источник цены, если сайт бани закрыт</li><li><a href="https://yandex.ru/maps/org/usachyovskiye_bani/156965845410/" target="_blank" rel="noopener">Яндекс Карты, вкладка «Цены»</a> – сверка цены и даты обновления</li><li><a href="https://cave.moscow/" target="_blank" rel="noopener">Виджеты бронирования</a> – цена, видимая при выборе слота (YCLIENTS и подобные)</li></ul></dd>
 <dt>как собирается</dt><dd>Агент раз в две недели открывает страницы цен 16 бань (Exa web_fetch или WebFetch), вытаскивает цену часа самого популярного номера на 6 гостей в будни и выходные, записывает дату снятия и ссылку. Если цена только в картинке или по звонку, ставит null и пометку, цифру не оценивает.</dd>
