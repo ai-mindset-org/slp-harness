@@ -870,13 +870,14 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
       .replace(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]/g, (m, t, label) => {
         const hit = idx && idx.get(norm(unesc(t)));
-        return hit ? `<a class="wl" data-p="${esc(hit)}">${label || esc(bare(unesc(t)))}</a>` : `<a class="wl miss" title="файла ещё нет">${label || t}</a>`;
+        return hit ? `<a class="wl" data-p="${esc(hit)}">${label || esc(bare(unesc(t)))}</a>` : futureLink(futureOf(unesc(t)), label || t);
       })
       .replace(/!\[([^\]]*)\]\((?:\.\.\/)*_assets\/([\w-]+)\/([^)]+)\)/g, (m, alt, dir, f) => `<img class="mdimg ${dir}" alt="${alt}" src="assets/${dir}/${f}">`)
       .replace(/\[([^\]]+)\]\(&lt;([^&]+?)&gt;\)|\[([^\]]+)\]\(([^)\s:]+\.(?:md|html))\)/g, (m, l1, t1, l2, t2) => {
         const label = l1 || l2; let t = unesc(t1 || t2); try { t = decodeURIComponent(t); } catch { /* raw */ }
         const hit = idx && (idx.get(norm(joinPath(MD_FROM, t))) || idx.get(norm(t.split('/').pop())));
-        return hit ? `<a class="wl" data-p="${esc(hit)}">${label}</a>` : `<span class="wl miss" title="файла ещё нет">${label}</span>`;
+        const fp = !hit && MODE === 'replay' ? (FUTURE.has(joinPath(MD_FROM, t)) ? joinPath(MD_FROM, t) : futureOf(t)) : null;
+        return hit ? `<a class="wl" data-p="${esc(hit)}">${label}</a>` : fp ? futureLink(fp, label) : `<span class="wl miss" title="файла ещё нет">${label}</span>`;
       })
       .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')).replace(/(<a [^>]*>)<a [^>]*>([^<]*)<\/a>/g, '$1$2');
   }
@@ -963,6 +964,9 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     return futureFiles.get(p);
   }
   const stem = (s) => norm(bare(String(s).split('/').pop()).replace(/\.(md|html|json|ya?ml|canvas)$/, ''));
+  const futureLink = (fp, label) => (fp && FUTURE.get(fp)
+    ? `<a class="wl miss fut" data-f="${esc(fp)}" title="файл появится на шаге ${esc(String(FUTURE.get(fp).phase || '').slice(1))} – открыть его будущий вид">${label}</a>`
+    : `<a class="wl miss" title="файла ещё нет">${label}</a>`);
   function futureOf(key) {
     if (MODE !== 'replay') return null;
     const k = stem(key);
@@ -1086,7 +1090,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     pvRender();
   }
   $('pvLinks').addEventListener('click', (e) => { const el = e.target.closest('a[data-p]'); if (el) openPreview(el.dataset.p); });
-  $('pvMd').addEventListener('click', (e) => { const el = e.target.closest('a.wl[data-p]'); if (el) openPreview(el.dataset.p); });
+  $('pvMd').addEventListener('click', (e) => { const el = e.target.closest('a.wl[data-p], a.wl[data-f]'); if (el) openPreview(el.dataset.p || el.dataset.f); });
   $('pvClose').onclick = closePreview;
   $('pvView').onclick = () => { if (PV.mode === 'edit' && PV.buffer !== PV.base) { pvNote('сначала сохрани правки или закрой панель'); return; } PV.mode = 'view'; pvRender(); };
   $('pvRaw').onclick = () => { if (PV.mode === 'edit' && PV.buffer !== PV.base) { pvNote('сначала сохрани правки или закрой панель'); return; } PV.mode = 'raw'; pvRender(); };
@@ -1134,7 +1138,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     return null;
   }
   // the same names as tools/export-tools.mjs: the public copy of each dashboard lives in tools/<slug>.html
-  const TOOL_PAGES = { 'карта конкурентов': 'karta', 'прайсинг': 'praising', 'граф гостей': 'gosti', 'загрузка': 'zagruzka', 'радар пабликов': 'radar' };
+  // (the radar is not published as a page of its own, it opens only inside the simulator)
+  const TOOL_PAGES = { 'карта конкурентов': 'karta', 'прайсинг': 'praising', 'граф гостей': 'gosti', 'загрузка': 'zagruzka' };
   function pvLinks() {
     const dash = PV.path && /^dashboards\/.*\.html$/.test(PV.path);
     const slug = dash && TOOL_PAGES[bare(base(PV.path))];
@@ -1480,7 +1485,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     const f = await fh.getFile();
     const c = fsaCache.get(r);
     if (c && c.mtime === f.lastModified && c.size === f.size) { out.push({ path: r, mtime: c.mtime, content: c.content }); return; }
-    const content = (await f.text()).slice(0, 20000);
+    // a dashboard is drawn from its whole text (a map is ~200 000 signs); other files stay cut at 20 000
+    const content = (await f.text()).slice(0, /\.html$/.test(r) ? 2000000 : 20000);
     fsaCache.set(r, { mtime: f.lastModified, size: f.size, content });
     out.push({ path: r, mtime: f.lastModified, content });
   }
@@ -2049,7 +2055,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   function linkGroups(paths) {
     const g = new Map();
     for (const p of paths) { const L = layerAt(p); if (!g.has(L)) g.set(L, []); g.get(L).push(p); }
-    return [...g].map(([L, ps]) => `<span class="lg"><i>${LAYERS[L].glyph} ${LAYERS[L].label} ${ps.length}</i>${ps.slice(0, 12).map((x) => `<a data-p="${esc(x)}" title="${esc(x)}">${esc(base(x).replace(/^\{[a-z-]+\}\s+/, ''))}</a>`).join('')}${ps.length > 12 ? `<em>…ещё ${ps.length - 12}</em>` : ''}</span>`).join('');
+    return [...g].map(([L, ps]) => `<span class="lg"><i>${LAYERS[L].glyph} ${LAYERS[L].label} ${ps.length}</i>${ps.slice(0, 12).map((x) => `<a data-p="${esc(x)}" title="${esc(x)}">${esc(L === 'skill' ? (S.files.get(x) || {}).title || base(x) : base(x).replace(/^\{[a-z-]+\}\s+/, ''))}</a>`).join('')}${ps.length > 12 ? `<em>…ещё ${ps.length - 12}</em>` : ''}</span>`).join('');
   }
 
   resize();

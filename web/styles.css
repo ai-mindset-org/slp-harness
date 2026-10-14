@@ -953,3 +953,4 @@ body.nosteps #tl,body.nosteps #narr,body.nosteps #phPrev{display:none !important
 .people .pgl.lone .cap{flex-basis:100%}
 #graph .node.person text{fill:#9d9d9d; font-size:calc(7.5px * var(--inv, 1))}
 #graph .node.person path{opacity:.8}
+.md a.wl.miss.fut{cursor:pointer; color:var(--ink)}
