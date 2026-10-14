@@ -974,3 +974,18 @@ body.nosteps #tl,body.nosteps #narr,body.nosteps #phPrev{display:none !important
 #hod .chips .more{font-size:10.5px; color:var(--muted); padding:0 3px}
 #hod .hd-q{color:var(--ink); font-weight:500}
 #hod code{font-size:10.5px; background:var(--hair); padding:0 3px}
+
+/* срезы: the step each dashboard appeared on and an icon by kind */
+#tree .stp,#tree .fold .stp{font-style:normal; font-size:9.5px; color:var(--muted); border:1px solid var(--soft); padding:0 4px; margin-left:6px; white-space:nowrap}
+#tree .file.dash .g{color:var(--ink); font-weight:700}
+#stFiles .dashl{list-style:none; margin:2px 0 8px; padding:0; font-size:12px; line-height:1.5}
+#stFiles .dashl a{cursor:pointer; border-bottom:1px solid var(--accent); color:var(--ink); text-decoration:none}
+#dashList{margin-top:8px}
+#dashList .dl-h{font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); border-bottom:1px dashed var(--soft); padding-bottom:3px; margin-bottom:2px}
+#dashList .dl-r{display:grid; grid-template-columns:18px 50px minmax(0,1fr); column-gap:6px; padding:4px 0; border-bottom:1px dashed var(--hair); font-size:11px; line-height:1.4; cursor:pointer}
+#dashList .dl-r:hover b{text-decoration:underline}
+#dashList .dl-r.off{opacity:.45; cursor:default}
+#dashList .dl-r i{font-style:normal; font-weight:700; grid-row:span 2}
+#dashList .dl-r em{font-style:normal; color:var(--muted); font-size:10px; grid-row:span 2}
+#dashList .dl-r span{grid-column:3; color:var(--muted)}
+#dashList .dl-r u{text-decoration:none; color:var(--ink)}

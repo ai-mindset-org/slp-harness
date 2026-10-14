@@ -575,11 +575,13 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
       const files = groups.get(g).sort((a, b) => a.path.localeCompare(b.path));
       const shut = folded(g, files.length) && !files.some((f) => ren.has(f.path));
       const fresh = files.filter((f) => S.fresh.has(f.path) && t - S.fresh.get(f.path) < 1800).length;
-      return `<div class="fold${shut ? ' shut' : ''}${shut && fresh ? ' new' : ''}" data-g="${esc(g)}" title="клик – свернуть или развернуть"><b>${g ? `${esc(g)}/` : './'}</b> ${files.length}${shut && fresh ? ` <i>+${fresh}</i>` : ''}</div>` + files.filter((f) => !shut || f.path === SEL).map((f) => {
+      const dstep = g === 'dashboards' ? files.map((f) => stepOf(f.path)).filter(Boolean).sort()[0] : null;
+      return `<div class="fold${shut ? ' shut' : ''}${shut && fresh ? ' new' : ''}" data-g="${esc(g)}" title="клик – свернуть или развернуть"><b>${g ? `${esc(g)}/` : './'}</b> ${files.length}${shut && fresh ? ` <i>+${fresh}</i>` : ''}${dstep ? ` <em class="stp">шаг ${dstep.slice(1)}</em>` : ''}</div>` + files.filter((f) => !shut || f.path === SEL).map((f) => {
         const isNew = S.fresh.has(f.path) && t - S.fresh.get(f.path) < 1800;
         const name = g ? f.path.slice(g.length + 1) : f.path;
         const r = ren.get(f.path);
-        return `<div class="file${isNew ? ' new' : ''}${r ? ' ren' : ''}${f.path === SEL ? ' sel' : ''}" data-p="${esc(f.path)}" title="${esc(f.path)}"><span class="g">${LAYERS[f.layer].glyph}</span>${r ? renameRow(r, name) : `<span>${esc(name)}</span>`}</div>`;
+        const dash = g === 'dashboards' && f.path !== 'dashboards/README.md', st = dash && stepOf(f.path);
+        return `<div class="file${isNew ? ' new' : ''}${r ? ' ren' : ''}${f.path === SEL ? ' sel' : ''}${dash ? ' dash' : ''}" data-p="${esc(f.path)}" title="${esc(f.path)}"><span class="g">${dash ? dashIcon(f.path) : LAYERS[f.layer].glyph}</span>${r ? renameRow(r, name) : `<span>${esc(name)}</span>`}${st ? `<em class="stp">шаг ${st.slice(1)}</em>` : ''}</div>`;
       }).join('');
     }).join('');
     document.getElementById('fileCount').textContent = S.files.size;
@@ -1214,7 +1216,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     $('stTree').innerHTML = stopTree(new Set(shown));
     const ren = (ph.rename || []).filter((r) => S.files.has(r.to));
     const added = shown.filter((p) => !ren.some((r) => r.to === p));
-    $('stFiles').innerHTML = (ren.length ? `<b>переименовано · ${ren.length}</b><ul class="renl">${ren.map((r) => `<li><s>${esc(r.from)}</s><a data-p="${esc(r.to)}">${esc(r.to)}</a></li>`).join('')}</ul>` : '') +
+    const dm = dashMeta(), dnew = added.filter((p) => dm.has(p)).map((p) => dm.get(p));
+    $('stFiles').innerHTML = (dnew.length ? `<b>появились срезы · ${dnew.length}</b><ul class="dashl">${dnew.map((d) => `<li><a data-p="${esc(d.path)}">${dashIcon(d.path)} ${esc(d.name)}</a> · ${esc(d.show)}</li>`).join('')}</ul>` : '') + (ren.length ? `<b>переименовано · ${ren.length}</b><ul class="renl">${ren.map((r) => `<li><s>${esc(r.from)}</s><a data-p="${esc(r.to)}">${esc(r.to)}</a></li>`).join('')}</ul>` : '') +
       (added.length ? `<b>появилось в папке · ${added.length}</b><div class="chips">${added.map((p) => `<a data-p="${esc(p)}" title="${esc(p)}">${LAYERS[layerAt(p)].glyph} ${esc(bare(base(p)))}</a>`).join('')}</div>` : '');
     const nxt = META.phases[i + 1];
     $('stGo').textContent = nxt ? `дальше: ${nxt.title} →` : 'к финалу →';
@@ -1264,6 +1267,18 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     return null;
   }
 
+  function renderDashList() {
+    const el = $('dashList'); if (!el) return;
+    const dm = [...dashMeta().values()].filter((d) => MODE === 'replay' || S.files.has(d.path));
+    if (!dm.length) { el.innerHTML = ''; return; }
+    const shown = dm.filter((d) => S.files.has(d.path)).length;
+    el.innerHTML = `<div class="dl-h">срезы · ${shown} из ${dm.length}</div>` + dm.map((d) => {
+      const st = stepOf(d.path), has = S.files.has(d.path);
+      return `<div class="dl-r${has ? '' : ' off'}"${has ? ` data-p="${esc(d.path)}"` : ''}><i>${dashIcon(d.path)}</i><em>${st ? `шаг ${st.slice(1)}` : '–'}</em><b>${esc(d.name)}</b><span>${esc(d.show)}${d.who ? ` · <u>${esc(d.who)}</u>` : ''}</span></div>`;
+    }).join('') + (shown < dm.length ? `<div class="cap">серые появятся на шаге ${(stepOf(dm.find((d) => !S.files.has(d.path)).path) || 'p09').slice(1)}</div>` : '');
+  }
+  $('dashList') && $('dashList').addEventListener('click', (e) => { const r = e.target.closest('.dl-r[data-p]'); if (r) openPreview(r.dataset.p); });
+
   // ---------- «ход»: every step as a short conversation from the scenario and the session journals ----------
   const relPath = (from, href) => { const parts = from.split('/').slice(0, -1); for (const s of href.split('/')) { if (s === '..') parts.pop(); else if (s && s !== '.') parts.push(s); } return parts.join('/'); };
   function readOf(sessPath) {
@@ -1305,7 +1320,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
 
   // ---------- render loop ----------
   function renderAll(progress, replayT) {
-    if (dirty) { renderGraph(); renderTree(); renderCommits(); renderLanes(); renderDash(); renderNarr(); renderTools(); renderRuns(); renderHod(); pvSync(); dirty = false; }
+    if (dirty) { renderGraph(); renderTree(); renderCommits(); renderLanes(); renderDash(); renderDashList(); renderNarr(); renderTools(); renderRuns(); renderHod(); pvSync(); dirty = false; }
     renderAnketa(replayT);
     renderPhases(progress);
   }
