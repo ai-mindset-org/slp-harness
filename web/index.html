@@ -40,7 +40,7 @@
 
   <section id="colC" class="panel">
     <div class="gh">
-      <h2><span>03 · граф</span></h2>
+      <h2><span>03 · граф</span><input id="gFilter" type="search" autocomplete="off" spellcheck="false" placeholder="фильтр: имя, путь, type:роль, type:сессия" title="подстрока имени или пути; type:роль, type:сессия, type:правило – слой; Esc очищает"></h2>
       <div id="legend"></div>
     </div>
     <div id="stage">
@@ -54,16 +54,16 @@
           <div class="cn-f" id="cnSlp"><b>SLP'26 · группа</b><small>та же система для группы: классы, участники, гости · только на компьютере ведущего</small><code>~/harness/slp26-community</code></div>
         </div>
         <div class="cn-opt">
-          <b>01 · выбрать папку в браузере</b>
-          <p>граф строится из файлов, правки сохраняются прямо в них. без установки; работает в Chrome, Arc, Edge. на телефоне папку не выбрать.</p>
+          <b>01 · выбрать папку в браузере · ничего не ставить</b>
+          <p>граф, поиск и правка файлов прямо здесь. Chrome, Arc или Edge; на телефоне папку не выбрать.</p>
           <div class="cn-row"><button id="pickFolder" class="go" type="button">выбрать папку</button><button id="resumeFolder" type="button" hidden>продолжить с прошлой папкой</button><span class="cap" id="fsaNote">Chrome, Arc, Edge</span></div>
         </div>
         <div class="cn-opt">
-          <b>02 · полный режим: агенты, коммиты, откат, Obsidian</b>
-          <p>git clone скачивает движок в <code>~/slp-harness</code>. <code>new.sh</code> создаёт папку компании из образца: одиннадцать коммитов: пустая папка и по одному на каждый из десяти шагов, и открывает её здесь на <code>localhost:4747</code>. Нужны git и Node.js 18+.</p>
+          <b>02 · полный режим: агенты и коммиты</b>
+          <p>движок скачивается один раз и открывает любую твою папку на <code>localhost</code>. нужны git и Node.js 18+.</p>
           <div class="cmd"><code id="cmdClone">git clone https://github.com/ai-mindset-org/slp-harness.git ~/slp-harness</code><button type="button" data-copy="cmdClone">копировать</button></div>
-          <div class="cmd"><code id="cmdOpen">~/slp-harness/bin/new.sh ~/harness/lunnaya-kamenka</code><button type="button" data-copy="cmdOpen">копировать</button></div>
-          <p class="cap">своя папка с нуля: кнопка «свой бизнес» вверху · открыть существующую: <code>~/slp-harness/bin/open.sh &lt;папка&gt;</code> · остановить: <code>~/slp-harness/bin/stop.sh</code> · перед пушем: <code>bash checks/check-git-private.sh</code></p>
+          <div class="cmd"><code id="cmdOpen">~/slp-harness/bin/open.sh ~/моя-папка</code><button type="button" data-copy="cmdOpen">копировать</button></div>
+          <p class="cap">свежая копия образца бани: <code>~/slp-harness/bin/new.sh ~/harness/lunnaya-kamenka</code> · остановить: <code>~/slp-harness/bin/stop.sh</code></p>
           <div class="cn-row"><a class="btnlink" href="http://localhost:4747/?mode=live&amp;intro=0" target="_blank" rel="noopener">открыть localhost:4747 ↗</a><span class="cap">если граф уже запущен</span></div>
         </div>
       </div>
@@ -74,7 +74,7 @@
   <section id="colR">
     <div class="panel" id="askP"><h2 class="fold-h" data-fold="ask"><span>04 · шаг</span><em id="askLevel"></em></h2><div id="ask"></div></div>
     <div class="panel" id="anketaP"><h2 class="fold-h" data-fold="qa"><span>анкета</span><em id="qaCount">0/7</em></h2><dl id="qa"></dl></div>
-    <div class="panel" id="lanesP"><h2 class="fold-h" data-fold="lanes"><span>агенты · люди</span><em id="laneCount">0</em></h2><div id="lanes"></div></div>
+    <div class="panel" id="lanesP"><h2 class="fold-h" data-fold="lanes"><span>агенты · люди</span><em id="laneCount">0</em></h2><div id="lanes"></div><form id="askAgent" class="srvonly" hidden><input id="aaQ" autocomplete="off" spellcheck="false" placeholder="запрос агенту в этой папке"><button type="submit">спросить</button></form><div id="aaOut" class="srvonly" hidden></div></div>
     <div class="panel" id="dashP">
       <div id="tabs"><button class="on" data-tab="dash">05 · срез</button><button data-tab="tools">инструменты</button><button data-tab="console" class="liveonly">консоль</button><button data-tab="sessions">сессии</button><button class="fold-t" data-fold="tabBody" title="свернуть блок">▾</button></div>
       <div id="tabBody">

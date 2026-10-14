@@ -425,8 +425,22 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     svg.call(zoom.transform, d3.zoomIdentity.translate(cur.x + (tx - cur.x) * a, cur.y + (ty - cur.y) * a).scale(cur.k + (k - cur.k) * a));
   }
   (function fitLoop() { fitStep(); requestAnimationFrame(fitLoop); })();
+  // graph filter: a substring of name or path, «type:роль» picks a layer; the rest fades to a tenth
+  let FILTER = '';
+  function filterHit(d) {
+    if (!FILTER) return true;
+    const L = LAYERS[d.layer] || {};
+    const m = /^type:\s*(.+)$/.exec(FILTER);
+    if (m) return d.layer === m[1] || String(L.label || '').includes(m[1]) || (m[1] === 'агент' && d.layer === 'agent');
+    return String(d.title || '').toLowerCase().includes(FILTER) || String(d.id || '').toLowerCase().includes(FILTER);
+  }
+  document.getElementById('gFilter').addEventListener('input', (e) => { FILTER = e.target.value.trim().toLowerCase(); highlight(); });
+  document.getElementById('gFilter').addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); e.target.value = ''; FILTER = ''; highlight(); e.target.blur(); } });
   function highlight() {
     if (!nodeSel) return;
+    nodeSel.classed('faded', (d) => !filterHit(d));
+    linkSel.classed('faded', (l) => !!FILTER && !(filterHit(l.source) && filterHit(l.target)));
+    svg.classed('filtering', !!FILTER);
     svg.classed('hovering', !!hoverId);
     if (!hoverId) { nodeSel.classed('dim', false); linkSel.classed('dim', false).classed('hot', false); return; }
     const nb = new Set([hoverId]);
@@ -1208,13 +1222,13 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     // the local server lives only on localhost; on the site the page never asks for /api
     if (!TEAM && LOCALHOST) { try { SESSION = await fetch('/api/session').then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }); document.getElementById('consoleHost').textContent = SESSION.serverHost; folderBar(); } catch { SERVERLESS = true; } }
     else if (!TEAM) SERVERLESS = true;
-    if (SESSION) setBrand(SESSION.name);
+    if (SESSION) { setBrand(SESSION.name); $('askAgent').hidden = false; }
     consolePane();
     if (SERVERLESS) await connectCard();
     if (introWanted) {
       $('inTitle').textContent = TEAM ? 'рабочая папка из git' : SERVERLESS ? 'своя папка: подключи её' : 'своя папка на этом компьютере';
       $('inLead').textContent = 'своя папка – обычная папка на твоём компьютере. граф читает её файлы и меняется от любой правки: Obsidian, редактор, агент. на сайт папка не уходит.';
-      if (SERVERLESS && !TEAM) $('inPoints').innerHTML = '<li>на сайте папку можно выбрать в браузере или перетащить из Finder: граф, поиск, правка файлов</li><li>агенты, коммиты, откат и Obsidian – в полном режиме: git clone и <code>bin/new.sh</code>, команды на следующем экране</li><li>две готовые папки: Лунная каменка – образец с GitHub; SLP\'26 – папка группы, только у ведущего</li>';
+      if (SERVERLESS && !TEAM) $('inPoints').innerHTML = '<li>папку можно выбрать в браузере или перетащить из Finder: граф, поиск, правка файлов. ничего не ставить</li><li>агенты и коммиты – в полном режиме: один раз git clone, потом <code>bin/open.sh &lt;своя папка&gt;</code></li><li>две готовые папки: Лунная каменка – образец с GitHub; SLP\'26 – папка группы, только у ведущего</li>';
       if (TEAM) $('inPoints').innerHTML = '<li>граф собран из репозитория ai-mindset-org/marketing-harness-sprint: сервер команды проверяет его раз в 5 минут и публикует после каждого push</li><li>сессии агентов лежат в папке sessions/: кто запускал, что сделал, какие файлы тронул; клик по коммиту – что в нём</li><li>в строке папки – zip текущей папки и команда клонирования; правка и агенты – у себя: клон, bin/open.sh, коммит, push</li><li>клик по узлу открывает файл; ⌘K – поиск; пробел – заморозить картинку</li>';
       if (SESSION) $('inPoints').innerHTML = '<li>каждая фигура – файл папки; граф меняется от любой правки: Obsidian, редактор, агент</li><li>панель «агенты» – роли: ▶ запускает роль, клик по статусу открывает сессию вживую; в консоли – готовые запросы, в том числе проверка git и приватных данных</li><li>клик по коммиту – что в нём, «откатить», «форк с этого места»; у файла – «история» и возврат старой версии</li><li><kbd>⌘K</kbd> – поиск; пробел – заморозить картинку; Esc закрывает верхнее окно</li>';
       $('inGo').textContent = 'открыть граф →'; $('inEnd').hidden = true;
@@ -1661,6 +1675,26 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
     if (b.dataset.edit) { $('cPrompt').value = roleTask(b.dataset.edit); $('cPrompt').dataset.role = b.dataset.edit; document.querySelector('#tabs button[data-tab=console]').click(); $('cPrompt').focus(); return; }
     if (b.dataset.stop) { stopRun(b.dataset.stop); return; }
     if (b.dataset.run) openSession(b.dataset.run); else if (b.dataset.p) openPreview(b.dataset.p);
+  });
+
+  // a question to an agent right in the agents panel: one run in this folder through /api/agent, its answer below
+  let ASK_RUN = null;
+  async function pollAsk(q) {
+    const id = ASK_RUN; if (!id) return;
+    const r = await fetch(`/api/runs/${encodeURIComponent(id)}`).then((x) => x.json()).catch(() => null);
+    if (ASK_RUN !== id) return;
+    if (!r || r.error) { $('aaOut').innerHTML = '<p class="cap">сессия не найдена на этом компьютере</p>'; return; }
+    $('aaOut').innerHTML = `<div class="aa-h"><b>${STATUS_RU[r.status] || esc(r.status)}</b><span>${esc(r.runner)} · ${esc(r.model || '')} · ${dur(r.startedAt, r.endedAt)}</span><a data-run="${esc(id)}">поток ↗</a></div><p class="aa-q">${esc(q)}</p>` +
+      (r.status === 'running' ? `<p class="cap">${esc(r.last || 'думает')}</p>` : r.result ? `<div class="md">${mdRender(r.result)}</div>` : '<p class="cap">ответа нет: открой поток</p>');
+    if (r.status === 'running') setTimeout(() => pollAsk(q), 1500);
+  }
+  $('askAgent').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const q = $('aaQ').value.trim(); if (!q || !SESSION) return;
+    $('aaOut').hidden = false; $('aaOut').innerHTML = '<p class="cap">запускаю…</p>';
+    const r = await launch(q, '');
+    if (!r || !r.id) { $('aaOut').innerHTML = `<p class="cap warn">не запустилось: ${esc((r && r.error) || 'ошибка')}</p>`; return; }
+    ASK_RUN = r.id; $('aaQ').value = ''; pollAsk(q);
   });
 
   // console list: the last runs; the tab «сессии»: all of them, local runs and sessions/ files

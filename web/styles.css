@@ -897,3 +897,21 @@ body.nosteps #tl,body.nosteps #narr,body.nosteps #phPrev{display:none !important
   #stWhy dl.why dd{margin-bottom:6px}
   .renl li{grid-template-columns:minmax(0,1fr)}
 }
+/* фильтр графа */
+.gh h2{display:flex; align-items:center; gap:10px}
+#gFilter{font:inherit; font-family:var(--mono); font-size:11px; letter-spacing:0; text-transform:none; color:var(--ink); border:1px solid var(--soft); padding:3px 7px; width:min(300px,40vw); background:var(--bg)}
+#gFilter:focus{border-color:var(--ink); outline:none}
+#graph .node.faded{opacity:.1}
+#graph .link.faded{opacity:.06}
+#graph.filtering .node:not(.faded) text{display:block}
+/* запрос агенту в панели агентов */
+#askAgent{display:grid; grid-template-columns:minmax(0,1fr) auto; margin-top:8px}
+#askAgent[hidden]{display:none}
+#aaQ{font:inherit; font-size:12.5px; border:1px solid var(--ink); border-right:none; padding:5px 8px; min-width:0}
+#aaQ:focus{outline:2px solid var(--accent); outline-offset:-1px}
+#aaOut{margin-top:6px; max-height:260px; overflow:auto; border-left:2px solid var(--accent); padding:4px 8px; font-size:12px}
+.aa-h{display:flex; gap:8px; align-items:baseline; font-size:11px}
+.aa-h span{color:var(--muted)}
+.aa-h a{margin-left:auto; cursor:pointer; border-bottom:1px solid var(--accent)}
+.aa-q{margin:4px 0; color:#444}
+.aa-q::before{content:'› '; color:var(--accent); font-weight:700}
