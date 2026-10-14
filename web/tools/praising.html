@@ -22,7 +22,7 @@ button,input,select{font:inherit;color:inherit}
 .kp + .kp{padding-left:14px;border-left:1px solid var(--hair)}
 .kp b{font-size:30px;font-weight:800;letter-spacing:-.025em;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kp b.acc{color:var(--acc)}
-.kp small{font-size:12px;color:var(--ink2);line-height:1.35}
+.kp small{font-size:12px;color:var(--ink2);line-height:1.35}.kp small a{color:inherit}
 .foot{margin-top:14px;padding-top:8px;border-top:1px solid var(--hair)}
 input[type=range]{width:100%;accent-color:var(--acc)}
 @keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -45,12 +45,13 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 
 <div class="k">срез · цены из карточек context/{context} конкурент и rules/{rule} цены и бронь</div>
 <h1>Прайсинг: где мы стоим</h1>
+<style>.why{font-size:12.5px;line-height:1.5;color:var(--ink2);margin:0 0 14px;padding:7px 10px;background:var(--paper);border-left:2px solid var(--acc);max-width:980px}.why b{font-weight:600;color:var(--ink)}</style><p class="why"><b>Вопрос:</b> сколько брать за конкретный слот и где наш прайс против соседей. <b>Смотрит:</b> управляющий перед правкой прайса. <b>Обновляет:</b> рутина «конкуренты по понедельникам» – цены соседей, «недельный срез» – загрузка.</p>
 <p class="lead">Час приватного зала и вход в общий разряд, будни. Длительность и размер зала – рядом с ценой. <span class="acc">Красная точка</span> – мы; ползунок двигает нашу цену.</p>
 <div class="kpis">
   <div class="kp"><span class="cap">наш час зала, будни</span><b class="acc" id="our">5 500 ₽</b><input id="s" type="range" min="2000" max="12000" step="250" value="5500"></div>
   <div class="kp"><span class="cap">место среди соседей</span><b id="rank">–</b><small id="rank2"></small></div>
   <div class="kp"><span class="cap">медиана соседей</span><b id="med">–</b><small>по опубликованным часам зала</small></div>
-  <div class="kp"><span class="cap">выходные при +45%</span><b id="we">–</b><small>рынок берёт +25–50% за вечер и выходные</small></div>
+  <div class="kp"><span class="cap">цена слота по модели</span><b class="acc" id="we">–</b><small><a href="#calc">дата и слот ниже</a> · модель, не прогноз</small></div>
 </div>
 <div class="two">
   <section><h2 class="k">час приватного зала, будни</h2><div id="ph" class="dots"></div></section>
@@ -67,9 +68,101 @@ function upd(){const v=+document.getElementById('s').value;document.getElementBy
   const xs=D.comps.filter(c=>c.ph).map(c=>c.ph).sort((a,b)=>a-b);const cheaper=xs.filter(x=>x<v).length;
   document.getElementById('rank').textContent=(cheaper+1)+' из '+(xs.length+1);document.getElementById('rank2').textContent='дешевле нас – '+cheaper+', дороже – '+(xs.length-cheaper);
   const m=xs.length%2?xs[(xs.length-1)/2]:(xs[xs.length/2-1]+xs[xs.length/2])/2;document.getElementById('med').textContent=fmt(m);
-  document.getElementById('we').textContent=fmt(Math.round(v*1.45/250)*250);
   dots('ph','ph','ph_d',v,D.ours.ph_d);}
 dots('en','entry','entry_d',D.ours.entry,D.ours.entry_d);document.getElementById('s').oninput=upd;upd();
+</script>
+<section class="calc" id="calc">
+<h2 class="k">цена слота · база × спрос × календарь × соседи</h2>
+<div class="cbar">
+  <label><span class="bl">дата</span><input type="date" id="cd" value="2026-10-21" min="2026-01-01" max="2027-12-31"></label>
+  <span class="bl">слот</span><span id="cs" class="seg"></span>
+  <label class="rad"><span class="bl">соседи в радиусе</span><input type="range" id="cr" min="3" max="40" step="1" value="10"><b id="crv">10 км</b></label>
+</div>
+<div class="cgrid">
+  <div class="cres">
+    <span class="cap">час зала на 6 · <span id="cwhen"></span></span>
+    <b id="cp">–</b>
+    <span class="cap" id="cband"></span>
+    <ol class="wf" id="cwf"></ol>
+    <p class="cap warn">модель на данных кита, не прогноз: загрузка из среза «загрузка», цены соседей из «карты конкурентов», сезон – допущение. Решение о цене – у управляющего.</p>
+  </div>
+  <div class="cweek">
+    <span class="cap">та же модель на всю неделю · <span id="cwk"></span></span>
+    <div class="wk" id="cwg"></div>
+    <span class="cap" id="cnb"></span>
+  </div>
+</div>
+<p class="cap src">откуда приём: <a href="https://doi.org/10.1177/1938965508324868" target="_blank" rel="noopener">Kimes, Singh · Spa Revenue Management, Cornell Hospitality Quarterly, 2008</a> – время зала портится, цену ставят по спросу на час, скидку держат за «забором» (будни, утро); <a href="https://www.xotels.com/en/revenue-management/spa-revenue-management-techniques" target="_blank" rel="noopener">Xotels · Spa Revenue Management Techniques, 2011</a> – базовая цена по пиковому спросу, скидки в тихие часы понятнее гостю, чем наценки; <a href="https://oasis.library.unlv.edu/cgi/viewcontent.cgi?article=1598&context=thesesdissertations" target="_blank" rel="noopener">Balkoulis · Revenue management in spas, UNLV</a> – спрос меняется по дню недели и часу, ранняя бронь и тихие слоты дешевле.</p>
+</section>
+<style>
+.calc{margin-top:22px;border-top:1px solid var(--ink);padding-top:10px}
+.calc h2{margin:0 0 10px;font-weight:500}
+.bl{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.cbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:0 0 14px}
+.cbar label{display:inline-flex;gap:8px;align-items:center}
+.cbar input[type=date]{border:1px solid var(--hair);background:var(--bg);padding:5px 7px;font-family:var(--mono);font-size:12px}
+.seg{display:inline-flex;gap:0}.seg .chip{margin-left:-1px}
+.rad input{width:150px}.rad b{font-family:var(--mono);font-size:12px;font-weight:500;min-width:44px}
+.cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:28px}
+.cres{display:flex;flex-direction:column;gap:4px}
+.cres > b{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1.05;color:var(--acc);font-variant-numeric:tabular-nums}
+.wf{list-style:none;margin:10px 0 6px;padding:0;border-top:1px solid var(--hair)}
+.wf li{display:grid;grid-template-columns:120px 64px minmax(0,1fr);gap:10px;padding:6px 0;border-bottom:1px solid var(--hair);font-size:12.5px;line-height:1.4;align-items:baseline}
+.wf li span:first-child{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.wf li b{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.wf li b.up{color:var(--acc)}
+.wf li em{font-style:normal;color:var(--ink2)}
+.warn{border-left:2px solid var(--acc);padding-left:8px}
+.wk{display:grid;grid-template-columns:44px repeat(4,minmax(0,1fr));gap:2px;margin:8px 0 6px;font-family:var(--mono);font-size:11.5px}
+.wk span{padding:6px 4px;text-align:center;font-variant-numeric:tabular-nums}
+.wk .h{color:var(--muted);font-size:10px}
+.wk .c{cursor:pointer;border:1px solid transparent}
+.wk .c:hover{border-color:var(--ink)}
+.wk .c.on{border-color:var(--acc);color:var(--acc);font-weight:600}
+.src{margin-top:14px}.src a{color:var(--ink2)}
+@media (max-width:900px){.cgrid{grid-template-columns:1fr}.wf li{grid-template-columns:96px 56px minmax(0,1fr)}.cres > b{font-size:36px}}
+</style>
+<script>
+(()=>{
+const $=id=>document.getElementById(id),fmt=n=>Math.round(n).toLocaleString('ru-RU')+' ₽',x=k=>'×'+k.toFixed(2).replace('.',',');
+let BASE=D.ours.ph;const SL=D.load.slots,DK=D.dayk,DN=D.days;
+// праздники РФ: нерабочие дни 2026–2027 по производственному календарю; канун – день до
+// 2027 – только январь: переносы остальных дней ещё не утверждены
+const HOL=new Set(['2026-01-01','2026-01-02','2026-01-03','2026-01-04','2026-01-05','2026-01-06','2026-01-07','2026-01-08','2026-02-23','2026-03-08','2026-03-09','2026-05-01','2026-05-09','2026-05-11','2026-06-12','2026-11-04','2026-12-31',
+  '2027-01-01','2027-01-02','2027-01-03','2027-01-04','2027-01-05','2027-01-06','2027-01-07','2027-01-08']);
+// сезон Москвы – допущение кита: банный сезон с октября по март, летом спрос ниже
+const SEASON=[1.10,1.08,1.04,0.97,0.92,0.88,0.86,0.90,0.96,1.00,1.04,1.10],MN=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+const wkMean=(DK[0]+DK[1]+DK[2]+DK[3]+DK[4])/5,weMean=(DK[5]+DK[6])/2;
+let slot=1;
+const iso=d=>d.toISOString().slice(0,10),dow=d=>(d.getUTCDay()+6)%7;
+function occ(d,s){const i=dow(d),we=i>=5;return Math.min(100,(we?D.load.weekend:D.load.weekday)[s]*DK[i]/(we?weMean:wkMean))}
+function demandK(o){return Math.min(1.25,Math.max(0.8,0.75+0.5*o/100))}
+function calK(d){const i=dow(d),k=iso(d),eve=HOL.has(iso(new Date(d.getTime()+864e5)))&&!HOL.has(k);
+  const we=i>=5?1.15:1,h=HOL.has(k)?1.2:eve?1.1:1,s=SEASON[d.getUTCMonth()];
+  return {k:we*h*s,we,h,s,txt:[i>=5?'выходной ×1,15':'будний день',HOL.has(k)?'праздник ×1,20':eve?'канун праздника ×1,10':'',MN[d.getUTCMonth()]+' '+x(s)].filter(Boolean).join(' · ')}}
+function compK(r){const xs=D.comps.filter(c=>c.ph&&c.km<=r).map(c=>c.ph).sort((a,b)=>a-b);
+  if(!xs.length)return {k:1,n:0,m:0};const m=xs.length%2?xs[(xs.length-1)/2]:(xs[xs.length/2-1]+xs[xs.length/2])/2;
+  return {k:Math.min(1.1,Math.max(0.9,1+0.3*(m/BASE-1))),n:xs.length,m}}
+const price=(d,s,r,dOcc=0)=>{const o=Math.max(0,Math.min(100,occ(d,s)+dOcc));return Math.round(BASE*demandK(o)*calK(d).k*compK(r).k/50)*50};
+function draw(){BASE=+($('s')||{value:D.ours.ph}).value;const d=new Date($('cd').value+'T00:00:00Z');if(isNaN(d))return;const r=+$('cr').value;$('crv').textContent=r+' км';
+  const o=occ(d,slot),dk=demandK(o),c=calK(d),q=compK(r),p=price(d,slot,r);
+  const lo=Math.round(Math.min(price(d,slot,r,-10),p)*0.97/50)*50,hi=Math.round(Math.max(price(d,slot,r,10),p)*1.03/50)*50;
+  $('cp').textContent=fmt(p);$('cwhen').textContent=DN[dow(d)]+' '+d.toISOString().slice(8,10)+'.'+d.toISOString().slice(5,7)+', '+SL[slot];
+  $('cband').textContent='границы '+fmt(lo)+' – '+fmt(hi)+': загрузка ±10 п. п. и цены соседей ±3%';
+  const row=(t,k,why)=>`<li><span>${t}</span><b class="${k>1.001?'up':''}">${k===null?fmt(BASE):x(k)}</b><em>${why}</em></li>`;
+  $('cwf').innerHTML=row('база',null,'наш час зала на 6 в будни; ползунок сверху меняет базу')+
+    row('спрос',dk,`загрузка слота ~${Math.round(o)}% по брони сентября; цель 50%: ниже – скидка, выше – наценка, не дальше ×0,80…×1,25`)+
+    row('календарь',c.k,c.txt)+
+    row('соседи',q.k,q.n?`медиана часа зала ${fmt(q.m)} у ${q.n} бань в радиусе ${r} км, сдвиг на 30% от разницы, не дальше ±10%`:`в радиусе ${r} км нет бань с опубликованной ценой – множитель 1`);
+  const mon=new Date(d.getTime()-dow(d)*864e5);$('cwk').textContent='с '+mon.toISOString().slice(8,10)+'.'+mon.toISOString().slice(5,7);
+  let g='<span class="h"></span>'+SL.map(s=>`<span class="h">${s}</span>`).join('');
+  for(let i=0;i<7;i++){const di=new Date(mon.getTime()+i*864e5);g+=`<span class="h">${DN[i]}${HOL.has(iso(di))?' ★':''}</span>`+SL.map((_,s)=>`<span class="c${iso(di)===iso(d)&&s===slot?' on':''}" data-d="${iso(di)}" data-s="${s}">${(price(di,s,r)/1000).toFixed(1).replace('.',',')}</span>`).join('')}
+  $('cwg').innerHTML=g;$('cnb').textContent='тыс. ₽ за час; ★ – праздник. Клик по клетке выбирает слот';
+  $('cwg').querySelectorAll('.c').forEach(el=>el.onclick=()=>{$('cd').value=el.dataset.d;slot=+el.dataset.s;segs();draw()});
+  const we=$('we');if(we)we.textContent=fmt(p);}
+function segs(){$('cs').innerHTML=SL.map((s,i)=>`<button class="chip${i===slot?' on':''}" data-s="${i}">${s}</button>`).join('');$('cs').querySelectorAll('button').forEach(b=>b.onclick=()=>{slot=+b.dataset.s;segs();draw()})}
+segs();['cd','cr','s'].forEach(id=>$(id)&&$(id).addEventListener('input',draw));draw();
+})();
 </script>
 <details class="meth"><summary><span class="k">методика</span> Сколько стоит час частного номера у меня относительно соседей и где мой прайс выходит за медиану?</summary>
 <dl><dt>источники</dt><dd><ul><li><a href="https://usbani.ru/price" target="_blank" rel="noopener">Страницы цен на сайтах бань</a> – цена за час номера по будням и выходным, число гостей в тарифе, доплаты за человека</li><li><a href="https://rzhevskie-bani.obiz.ru/price/" target="_blank" rel="noopener">Прайсы на obiz и аналогах</a> – резервный источник цены, если сайт бани закрыт</li><li><a href="https://yandex.ru/maps/org/usachyovskiye_bani/156965845410/" target="_blank" rel="noopener">Яндекс Карты, вкладка «Цены»</a> – сверка цены и даты обновления</li><li><a href="https://cave.moscow/" target="_blank" rel="noopener">Виджеты бронирования</a> – цена, видимая при выборе слота (YCLIENTS и подобные)</li></ul></dd>

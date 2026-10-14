@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { renderTemplate } from './timeline.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const answers = JSON.parse(fs.readFileSync(path.join(root, 'kit', 'answers.json'), 'utf8'));
-const NAMES = { 'карта конкурентов': 'karta', 'прайсинг': 'praising', 'граф гостей': 'gosti', 'загрузка': 'zagruzka' };
+const NAMES = { 'карта конкурентов': 'karta', 'прайсинг': 'praising', 'граф гостей': 'gosti', 'загрузка': 'zagruzka', 'радар пабликов': 'radar' };
 const out = path.join(root, 'web', 'tools');
 fs.mkdirSync(out, { recursive: true });
 for (const [ru, slug] of Object.entries(NAMES)) {
