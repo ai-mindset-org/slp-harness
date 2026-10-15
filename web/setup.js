@@ -68,7 +68,7 @@
   });
   $('suForm').addEventListener('input', (e) => { const f = e.target.dataset.f; if (!f) return; A[f] = e.target.value; save(); preview(); });
 
-  const first = () => `Ты агент в папке компании «${A.company || 'наша компания'}». Вот ответы анкеты: ${FIELDS.map(([k, q]) => `${q} – ${A[k] || 'уточнить'}`).join('; ')}. Сделай первый шаг: README с картой папки, AGENTS.md с правилами, паспорт компании в context/, правило имён в rules/. Чего не знаешь – помечай «уточнить», цифры не придумывай. Образец – публичный кит github.com/ai-mindset-org/slp-harness.`;
+  const first = () => `Сходи в https://github.com/ai-mindset-org/slp-harness и прочитай README, kit/files/AGENTS.md и kit/files/rules/ – это образец. Ты агент в папке компании «${A.company || 'наша компания'}», работай только с её файлами. Вот ответы анкеты: ${FIELDS.map(([k, q]) => `${q} – ${A[k] || 'уточнить'}`).join('; ')}. Сделай первый шаг: README с картой папки, AGENTS.md с правилами, паспорт компании в context/, правило имён в rules/. Если в папке уже есть файлы – предложи раскладку «было → стало» и подожди моего «да». Если есть расшифровки встреч – конспект каждой в meetings/: решения, кто делает, срок, три рекомендации мне. Чего не знаешь – помечай «уточнить», цифры не придумывай. После шага – коммит в git и три следующих шага.`;
   $('suCopy').onclick = async () => { try { await navigator.clipboard.writeText(first()); $('suMsg').textContent = 'первый запрос скопирован – вставь его агенту в пустой папке'; } catch { $('suMsg').textContent = first(); } };
 
   function files() {

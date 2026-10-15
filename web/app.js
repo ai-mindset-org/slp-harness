@@ -1823,6 +1823,8 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   // ---------- «как это устроено»: the header button, ? or h opens, Esc closes; keys under it stay still ----------
   const howOpen = (v) => { $('howto').hidden = !v; if (v) $('howClose').focus({ preventScroll: true }); };
   $('howBtn').onclick = () => howOpen(true);
+  $('howCopy').onclick = async () => { try { await navigator.clipboard.writeText($('howPrompt').textContent); $('howCopyMsg').textContent = 'скопировано – вставь агенту в папке компании'; } catch { $('howCopyMsg').textContent = 'выдели текст выше и скопируй'; } };
+  if (qs.get('help')) howOpen(true); // ?help=1 opens this window straight from a link
   $('howClose').onclick = () => howOpen(false);
   $('howto').addEventListener('click', (e) => { if (e.target === $('howto')) howOpen(false); });
   window.addEventListener('keydown', (e) => {
@@ -1849,7 +1851,7 @@ const SCENARIO_FILE = SCENARIO_KIT ? 'local/scenario-slp.json' : 'scenario.json'
   }, true);
 
   // ---------- intro: what this is, before the build starts ----------
-  const introWanted = qs.get('intro') !== '0' && !qs.get('at') && !qs.get('phase') && !(MODE === 'replay' && SCENARIO_KIT);
+  const introWanted = qs.get('intro') !== '0' && !qs.get('at') && !qs.get('phase') && !qs.get('help') && !(MODE === 'replay' && SCENARIO_KIT);
   function introClose(go) {
     $('intro').hidden = true;
     if (go) go();

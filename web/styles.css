@@ -1016,3 +1016,11 @@ body.nosteps #tl,body.nosteps #narr,body.nosteps #phPrev{display:none !important
 #howto dd{margin:0; padding-bottom:4px; border-bottom:1px dashed var(--hair)}
 #howto dt{border-bottom:1px dashed var(--hair); padding-bottom:4px}
 @media (max-width:900px){ #howto .hw{grid-template-columns:minmax(0,1fr)} #howto dl{grid-template-columns:110px minmax(0,1fr)} }
+#howto .hw-steps{margin:0 0 8px; padding:0; list-style:none; counter-reset:hs; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:0 14px}
+#howto .hw-steps li{counter-increment:hs; padding:4px 0 4px 22px; border-bottom:none; border-left:1px solid var(--hair); padding-left:26px}
+#howto .hw-steps li::before{content:counter(hs); color:var(--accent); font-weight:800; left:8px}
+#howto #howCopy{font-size:11.5px; padding:4px 10px}
+#howto .faq{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 22px}
+#howto .faq p{margin:0; padding:4px 0; border-bottom:1px dashed var(--hair)}
+#howto .faq b{display:block}
+@media (max-width:900px){ #howto .hw-steps,#howto .faq{grid-template-columns:minmax(0,1fr)} }
