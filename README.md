@@ -1,12 +1,16 @@
 # SLP harness · папка компании
 
+<!-- aim-public-links:start -->
+[Лабы AI Mindset](https://aimindset.org/?utm_source=website&utm_medium=article&utm_campaign=start&utm_content=github-slp-harness#learning) · [База знаний](https://base.aimindset.org/?utm_source=website&utm_medium=article&utm_campaign=start&utm_content=github-slp-harness)
+<!-- aim-public-links:end -->
+
 Кит и симулятор к классу SLP'26 «AI for Business», 14 октября 2026. Пример – вымышленный банный комплекс «Лунная каменка» в Москве на 18 человек: будни пустые, отзывы без ответа, договорённости живут в WhatsApp администратора. За десять шагов пустая папка становится системой, которую читают люди и агенты.
 
 ![SLP harness: папка «Лунная каменка» на шаге 10 – файлы, коммиты, полный граф, агенты и срезы](web/assets/preview.png)
 
-**Симулятор:** https://slp-ai-business.lab.aimindset.org/sim/
+**Симулятор:** [slp-ai-business.lab.aimindset.org/sim](https://slp-ai-business.lab.aimindset.org/sim/?utm_source=website&utm_medium=article&utm_campaign=start&utm_content=github-slp-harness)
 **Папка компании целиком, с переходами между файлами:** [kit/files/](kit/files/)
-**Презентация класса:** https://slp-ai-business.lab.aimindset.org/deck/
+**Презентация класса:** [slp-ai-business.lab.aimindset.org/deck](https://slp-ai-business.lab.aimindset.org/deck/?utm_source=website&utm_medium=article&utm_campaign=start&utm_content=github-slp-harness)
 
 ## начать за вечер
 
@@ -39,7 +43,7 @@
 
 ### вопросы с класса
 
-Что спрашивали 14 октября. Те же ответы – в симуляторе, окно «как устроено»: https://slp-ai-business.lab.aimindset.org/sim/?help=1
+Что спрашивали 14 октября. Те же ответы – в симуляторе, окно «как устроено»: [slp-ai-business.lab.aimindset.org/sim?help=1](https://slp-ai-business.lab.aimindset.org/sim/?help=1&utm_source=website&utm_medium=article&utm_campaign=start&utm_content=github-slp-harness)
 
 - **Что за программа была на показе?** Обычная папка на компьютере и граф поверх неё. Граф сделан для класса, чтобы систему было видно; ту же папку открывают Finder, Obsidian или VS Code.
 - **Сколько это стоит?** Одна подписка на того, кто ведёт папку: Claude Pro или ChatGPT Plus – около $20 в месяц, Claude Max – от $100. Подписки на команду – когда папка уже работает.
@@ -138,11 +142,11 @@ git show agent/secretary-03    # что именно сделал агент н�
 
 | срез | на какой вопрос отвечает | кто смотрит | обновляет рутина |
 |---|---|---|---|
-| [карта конкурентов](https://slp-ai-business.lab.aimindset.org/sim/tools/karta.html) | кто из бань рядом забирает наших гостей и чем он сильнее | владелец, управляющий | конкуренты по понедельникам |
-| [прайсинг](https://slp-ai-business.lab.aimindset.org/sim/tools/praising.html) | сколько брать за конкретный слот и где наш прайс против соседей | управляющий | конкуренты по понедельникам, недельный срез |
-| [граф гостей](https://slp-ai-business.lab.aimindset.org/sim/tools/gosti.html) | какому сегменту через какой канал и с каким сообщением продавать | маркетолог | исследователь раз в месяц |
-| [загрузка](https://slp-ai-business.lab.aimindset.org/sim/tools/zagruzka.html) | какие слоты стоят пустыми и сколько денег недобираем | управляющий | недельный срез |
-| [радар пабликов](https://slp-ai-business.lab.aimindset.org/sim/?phase=p09) · в симуляторе на шаге 09 | где разместиться в Москве и с чего начать | маркетолог, владелец | радар пабликов раз в месяц |
+| [карта конкурентов](https://slp-ai-business.lab.aimindset.org/sim/tools/karta.html?utm_source=website&utm_medium=article&utm_campaign=start&utm_content=github-slp-harness) | кто из бань рядом забирает наших гостей и чем он сильнее | владелец, управляющий | конкуренты по понедельникам |
+| [прайсинг](https://slp-ai-business.lab.aimindset.org/sim/tools/praising.html?utm_source=website&utm_medium=article&utm_campaign=start&utm_content=github-slp-harness) | сколько брать за конкретный слот и где наш прайс против соседей | управляющий | конкуренты по понедельникам, недельный срез |
+| [граф гостей](https://slp-ai-business.lab.aimindset.org/sim/tools/gosti.html?utm_source=website&utm_medium=article&utm_campaign=start&utm_content=github-slp-harness) | какому сегменту через какой канал и с каким сообщением продавать | маркетолог | исследователь раз в месяц |
+| [загрузка](https://slp-ai-business.lab.aimindset.org/sim/tools/zagruzka.html?utm_source=website&utm_medium=article&utm_campaign=start&utm_content=github-slp-harness) | какие слоты стоят пустыми и сколько денег недобираем | управляющий | недельный срез |
+| [радар пабликов](https://slp-ai-business.lab.aimindset.org/sim/?phase=p09&utm_source=website&utm_medium=article&utm_campaign=start&utm_content=github-slp-harness) · в симуляторе на шаге 09 | где разместиться в Москве и с чего начать | маркетолог, владелец | радар пабликов раз в месяц |
 
 Исходники – html-файлы в [dashboards/](kit/files/dashboards/): открываются в браузере прямо из папки.
 

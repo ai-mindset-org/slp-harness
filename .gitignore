@@ -4,3 +4,4 @@ node_modules/
 web/team/
 .public/
 web/local/
+.worktrees/
